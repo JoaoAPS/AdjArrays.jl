@@ -35,7 +35,7 @@ function adjMatToVet(mat::BitArray{2})
 end
 
 adjMatToVet(mat::Array{Bool,2}) = adjMatToVet(BitArray(mat))
-function adjMatToVet(mat::Array{<:Integer,2})
+function adjMatToVet(mat::AbstractArray{<:Integer,2})
 	try
 		BitArray(mat)
 	catch e

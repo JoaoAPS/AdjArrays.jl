@@ -1,0 +1,7 @@
+name = "AdjArrays"
+uuid = "04492356-0612-448d-ac0d-41882891aef9"
+authors = ["João Paludo <jas.paludo@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

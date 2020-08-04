@@ -1,13 +1,13 @@
 module AdjArrays
 
-include("architectures/Global.jl")
-include("architectures/ErdosRenyi.jl")
 include("operators.jl")
+include("architectures/Global.jl")
+include("architectures/Regular.jl")
+include("architectures/ErdosRenyi.jl")
 
-export GlobalNetwork, ErdosRenyiNetwork
-export adjVet
-export adjMat
+export GlobalNetwork, RegularNetwork, ErdosRenyiNetwork
 
+export adjVet, adjMat
 export adjVetToMat, adjMatToVet
 
 end

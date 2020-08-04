@@ -20,6 +20,37 @@ function tests()
 		@test_throws ArgumentError GlobalNetwork(0)
 	end
 	
+	@testset "Regular" begin
+		net = RegularNetwork(10, 4)
+	    @test net.N == 10
+	    @test net.k == 4
+	    @test !net.directed
+	    @test net.numConnections == 20
+	    
+	    net = RegularNetwork(10, 4, directed=true)
+	    @test net.directed
+	    @test net.numConnections == 40
+	    	    
+	    @test adjMat(RegularNetwork(5, 2)) == [
+	    	0 1 0 0 1;
+	    	1 0 1 0 0;
+	    	0 1 0 1 0;
+	    	0 0 1 0 1;
+	    	1 0 0 1 0
+	    ]
+	    @test adjVet(RegularNetwork(5, 2)) == [1, 4, 5, 7, 11, 13, 17, 19, 20, 23]
+	    @test adjMat(RegularNetwork(10, 4)) == adjMat(RegularNetwork(10, 4, directed=true))
+	    
+	    @test_throws ArgumentError RegularNetwork(-2, 1)
+	    @test_throws ArgumentError RegularNetwork(0, 1)
+	    @test_throws ArgumentError RegularNetwork(10, -1)
+	    @test_throws ArgumentError RegularNetwork(10, 0)
+	    @test_throws ArgumentError RegularNetwork(10, 3)
+	    @test isa(RegularNetwork(10, 3, directed=true), Any)
+	    @test_throws ArgumentError RegularNetwork(10, 10)
+	    @test_throws ArgumentError RegularNetwork(10, 10, directed=true)
+	end
+	
 	@testset "ErdosRenyi p-initialized" begin
 		# Undirected Network
 		net = ErdosRenyiNetwork(10, 0.5, seed=1234)

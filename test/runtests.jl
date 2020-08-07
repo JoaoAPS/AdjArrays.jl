@@ -40,16 +40,29 @@ function tests()
 	    )
 	    @test adjVet(net) == [1, 4, 5, 7, 11, 13, 17, 19, 20, 23]
 	    
+	    @test adjMat(RegularNetwork(10, 2)) == adjMat(RegularNetwork(10, 2, directed=true))
+	    
 		# Argument manip
-	    @test adjMat(RegularNetwork(10, 4))  == adjMat(RegularNetwork(10, 5))
-	    @test adjMat(RegularNetwork(10, 0))  == BitArray(zeros(10, 10))
-	    @test adjMat(RegularNetwork(10, -5)) == BitArray(zeros(10, 10))
-	    @test adjMat(RegularNetwork(10, 10)) == adjMat(GlobalNetwork(10))
-	    @test adjMat(RegularNetwork(10, 20)) == adjMat(GlobalNetwork(10))
+		net = RegularNetwork(10, 5)
+		@test net.k == 4
+		@test net.numConnections == 4 * 10 / 2
+	    @test adjMat(net)  == adjMat(RegularNetwork(10, 4))
+		net = RegularNetwork(10, -5)
+		@test net.k == 0
+		@test net.numConnections == 0
+	    @test adjMat(net) == adjMat(EmptyNetwork(10))
+	    net = RegularNetwork(10, 20)
+		@test net.k == 9
+		@test adjMat(net) == adjMat(GlobalNetwork(10))
+		@test net.numConnections == sum(adjMat(net)) / 2
+		net = RegularNetwork(11, 20)
+		@test net.k == 10
+		@test adjMat(net) == adjMat(GlobalNetwork(11))
+		@test net.numConnections == sum(adjMat(net)) / 2
 	    
 		# Argument errors
-	    @test_throws ArgumentError RegularNetwork(-2, 1)
 	    @test_throws ArgumentError RegularNetwork(0, 1)
+	    @test_throws ArgumentError RegularNetwork(-2, 1)
 	end
 	
 	@testset "ErdosRenyi p-initialized" begin
@@ -60,6 +73,8 @@ function tests()
 		@test !net.directed
 		@test net.seed == 1234
 		@test net.numConnections ≈ (net.p * net.N * (net.N - 1) / 2) atol=5
+		
+		@test issymmetric(adjMat(net))
 		@test sum(adjMat(net)) == 2 * net.numConnections
 		@test sum(adjMat(net)) == length(adjVet(net))
 		
@@ -74,6 +89,8 @@ function tests()
 		@test adjMat(ErdosRenyiNetwork(10, 0.5, seed=net.seed)) == adjMat(net)
 		
 		# Argument manip
+		@test ErdosRenyiNetwork(10, -1.).p == 0.0
+		@test ErdosRenyiNetwork(10, 1.2).p == 1.0
 		@test adjMat(ErdosRenyiNetwork(10, -1.)) == BitArray(zeros(10, 10))
 		@test adjMat(ErdosRenyiNetwork(10, 1.2)) == adjMat(GlobalNetwork(10))
 		
@@ -90,8 +107,10 @@ function tests()
 		@test isnothing(net.p)
 		@test !net.directed
 		@test net.seed == 1234
+		
+		@test issymmetric(adjMat(net))
 		@test sum(adjMat(net)) == 2 * net.numConnections
-		@test sum(adjMat(net)) == length(adjVet(net))
+		@test length(adjVet(net)) == 2 * net.numConnections
 		
 		# Directed Network
 		net = ErdosRenyiNetwork(10, 20, seed=1234, directed=true)
@@ -99,18 +118,131 @@ function tests()
 		@test isnothing(net.p)
 		@test net.directed
 		@test sum(adjMat(net)) == net.numConnections
+		@test length(adjVet(net)) == net.numConnections
 		
 		# Seed Behaviour
 		net = ErdosRenyiNetwork(10, 30)
 		@test adjMat(ErdosRenyiNetwork(10, 30, seed=net.seed)) == adjMat(net)
 		
 		# Argument manip
+		@test ErdosRenyiNetwork(10, -1).numConnections == 0
+		@test ErdosRenyiNetwork(10, 100).numConnections == 45
 		@test adjMat(ErdosRenyiNetwork(10, -1))  == BitArray(zeros(10, 10))
 		@test adjMat(ErdosRenyiNetwork(10, 100)) == adjMat(GlobalNetwork(10))
 		
 		# Argument errors
 		@test_throws ArgumentError ErdosRenyiNetwork(-2, 1)
 		@test_throws ArgumentError ErdosRenyiNetwork(0, 0)
+	end
+	
+	@testset "WattsStrogatz β-initialized" begin
+	    # Undirected Network
+		net = WattsStrogatzNetwork(500, 10, 0.2, seed=1234)
+		@test net.N == 500
+		@test net.k == 10
+		@test net.β == 0.2
+		@test net.numConnections == 10 * 500 / 2
+		@test net.numShortcuts ≈ (net.β * net.numConnections) rtol=0.1
+		@test !net.directed
+		@test net.seed == 1234
+		
+		@test issymmetric(adjMat(net))
+		@test sum(adjMat(net)) == 2 * net.numConnections
+		@test length(adjVet(net)) == 2 * net.numConnections
+		
+		# Directed Network
+		net = WattsStrogatzNetwork(500, 10, 0.2, seed=1234, directed=true)
+		@test net.numConnections == 10 * 500
+		@test net.numShortcuts ≈ (net.β * net.numConnections) rtol=0.1
+		@test net.directed
+		@test sum(adjMat(net)) == net.numConnections
+		@test length(adjVet(net)) == net.numConnections
+	    
+	    # Seed Behaviour
+		net = WattsStrogatzNetwork(20, 4, 0.2)
+		@test adjMat(WattsStrogatzNetwork(20, 4, 0.2, seed=net.seed)) == adjMat(net)
+		
+		# Argument manip
+		net = WattsStrogatzNetwork(10, -1, 0.2)
+		@test net.k == 0
+		@test net.numConnections == 0
+		@test net.numShortcuts == 0
+		@test isnothing(net.β)
+		@test adjMat(net) == adjMat(EmptyNetwork(10))
+
+		net = WattsStrogatzNetwork(10, 11, 0.2)
+		@test net.k == 9
+		@test net.numConnections == 90 / 2
+		@test net.numShortcuts == 0
+		@test isnothing(net.β)
+		@test adjMat(net) == adjMat(GlobalNetwork(10))
+
+		net = WattsStrogatzNetwork(10, 2, -0.5)
+		@test net.β == 0.0
+		@test net.numShortcuts == 0
+		@test adjMat(net) == adjMat(RegularNetwork(10, 2))
+
+		net = WattsStrogatzNetwork(10, 2, 1.5)
+		@test net.β == 1.0
+		@test net.numShortcuts == net.numConnections
+		
+		# Argument errors
+		@test_throws ArgumentError WattsStrogatzNetwork(-2, 2, 0.5)
+		@test_throws ArgumentError WattsStrogatzNetwork(0, 2, 0.5)
+	end
+	
+	@testset "WattsStrogatz numShortcuts-initialized" begin
+	    # Undirected Network
+		net = WattsStrogatzNetwork(500, 10, 100, seed=1234)
+		@test net.N == 500
+		@test net.k == 10
+		@test isnothing(net.β)
+		@test net.numConnections == 10 * 500 / 2
+		@test net.numShortcuts == 100
+		@test !net.directed
+		@test net.seed == 1234
+		
+		@test issymmetric(adjMat(net))
+		@test sum(adjMat(net)) == 2 * net.numConnections
+		@test length(adjVet(net)) == 2 * net.numConnections
+		
+		# Directed Network
+		net = WattsStrogatzNetwork(500, 10, 100, seed=1234, directed=true)
+		@test net.numConnections == 10 * 500
+		@test net.numShortcuts == 100
+		@test net.directed
+		@test sum(adjMat(net)) == net.numConnections
+		@test length(adjVet(net)) == net.numConnections
+	    
+	    # Seed Behaviour
+		net = WattsStrogatzNetwork(20, 4, 10)
+		@test adjMat(WattsStrogatzNetwork(20, 4, 10, seed=net.seed)) == adjMat(net)
+		
+		# Argument manip
+		net = WattsStrogatzNetwork(10, -1, 5)
+		@test net.k == 0
+		@test net.numConnections == 0
+		@test net.numShortcuts == 0
+		@test isnothing(net.β)
+		@test adjMat(net) == adjMat(EmptyNetwork(10))
+
+		net = WattsStrogatzNetwork(10, 11, 5)
+		@test net.k == 9
+		@test net.numConnections == 90 / 2
+		@test net.numShortcuts == 0
+		@test isnothing(net.β)
+		@test adjMat(net) == adjMat(GlobalNetwork(10))
+
+		net = WattsStrogatzNetwork(10, 2, -5)
+		@test net.numShortcuts == 0
+		@test adjMat(net) == adjMat(RegularNetwork(10, 2))
+
+		net = WattsStrogatzNetwork(10, 2, 40)
+		@test net.numShortcuts == net.numConnections
+		
+		# Argument errors
+		@test_throws ArgumentError WattsStrogatzNetwork(-2, 2, 10)
+		@test_throws ArgumentError WattsStrogatzNetwork(0, 2, 10)
 	end
 	
 	
@@ -127,6 +259,14 @@ function tests()
 		@test_throws ArgumentError adjMatToVet([1 0; 3 2])
 		@test_throws AssertionError adjMatToVet([1 0 1; 0 0 1])
 	end
+end
+
+function issymmetric(mat::AbstractMatrix)
+	(size(mat, 1) != size(mat, 2)) && (return false)
+	for i in 1:size(mat, 1), j in i+1:size(mat, 2)
+		(mat[i,j] != mat[j,i]) && (return false)
+	end
+	return true
 end
 	
 tests()

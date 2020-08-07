@@ -17,6 +17,24 @@ function adjVetToMat(vet::Vector{<:Integer}, N::Integer)
 	return mat
 end
 
+function adjMatToVet(mat::SparseArrays.AbstractSparseMatrix)
+	vet = Array{Int}(undef, length(mat.rowval))
+	idx_vet = 1
+	colptr = mat.colptr
+	rowval = mat.rowval
+	
+	for idx_col in eachindex(mat.colptr[1:end-1])
+		idxs_row = @view rowval[colptr[idx_col] : colptr[idx_col+1]-1]
+		
+		for idx_row in idxs_row
+			vet[idx_vet] = (idx_row-1) * size(mat,1) + (idx_col-1)
+			idx_vet += 1
+		end
+	end
+	
+	return sort(vet)
+end
+
 function adjMatToVet(mat::BitArray{2})
 	@assert size(mat,1) == size(mat,2)
 	
@@ -35,7 +53,7 @@ function adjMatToVet(mat::BitArray{2})
 end
 
 adjMatToVet(mat::Array{Bool,2}) = adjMatToVet(BitArray(mat))
-function adjMatToVet(mat::AbstractArray{<:Integer,2})
+function adjMatToVet(mat::AbstractArray{<:Real,2})
 	try
 		BitArray(mat)
 	catch e

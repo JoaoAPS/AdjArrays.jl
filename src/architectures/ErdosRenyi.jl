@@ -5,14 +5,15 @@ A random network contructed via the Erdos-Renyi method.
 
 # Fields
 - N              :: Integer -> Number of nodes
-- p              :: Float64 -> Connection probability
+- p              :: Real -> Connection probability
 - numConnections :: Integer -> Number of connections
 - directed       :: Bool    -> Wheter the network is directed or not
 - seed           :: Integer -> Seed for the random creation
 """
 struct ErdosRenyiNetwork <: AbstractNetwork
+# mutable struct ErdosRenyiNetwork <: AbstractNetwork
 	N :: Integer
-	p :: Union{Float64, Nothing}
+	p :: Union{Real, Nothing}
 	numConnections :: Integer
 	directed :: Bool
 	seed :: Integer
@@ -23,15 +24,17 @@ end
 """
 	ErdosRenyiNetwork(N, p; directed=false, seed=-1)
 
-Create an erdos-renyi random network with `N` nodes and connection probability `p`.
+Create an Erdos-Renyi random network with `N` nodes and connection probability `p`.
 """	
 function ErdosRenyiNetwork(
 	N::Integer,
-	p::Float64;
+	p::Real;
 	directed::Bool=false,
 	seed::Integer=-1
 )
 	(N <= 0) && throw(ArgumentError("Number of nodes must be a positive integer!"))
+	(p > 1) && (p = 1.0)
+	(p < 0) && (p = 0.0)
 	
 	_seed = seed < 0 ? rand(1:999999999) : seed
 	mat = generateERAdjMat(N, p; directed, seed=_seed)
@@ -44,7 +47,7 @@ end
 """
 	ErdosRenyiNetwork(N, numConnections; directed=false, seed=-1)
 
-Create an erdos-renyi random network with `N` nodes and `numConnections` connections.
+Create an Erdos-Renyi random network with `N` nodes and `numConnections` connections.
 """
 function ErdosRenyiNetwork(
 	N::Integer,
@@ -53,6 +56,11 @@ function ErdosRenyiNetwork(
 	seed::Integer=-1
 )
 	(N <= 0) && throw(ArgumentError("Number of nodes must be a positive integer!"))
+	
+	maxConnections = N * (N - 1)
+	directed || (maxConnections /= 2)
+	(numConnections > maxConnections) && (numConnections = maxConnections)
+	(numConnections < 0) && (numConnections = 0)
 	
 	_seed = seed < 0 ? rand(1:999999999) : seed
 	mat = generateERAdjMat(N, numConnections; directed, seed=_seed)
@@ -63,7 +71,7 @@ end
 
 function generateERAdjMat(
 	N::Integer,
-	p::Float64;
+	p::Real;
 	directed::Bool,
 	seed::Integer
 )

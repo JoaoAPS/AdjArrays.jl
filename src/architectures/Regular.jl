@@ -7,34 +7,44 @@ A regular (ring) network.
 - N              :: Integer -> Number of nodes
 - k              :: Integer -> Node connectivity
 - numConnections :: Integer -> Number of connections
+- directed       :: Bool    -> Wheter the network is directed or not
 """
 mutable struct RegularNetwork <: AbstractNetwork
 	N :: Integer
 	k :: Integer
 	numConnections :: Integer
+	directed :: Bool
 	
 	_adjMat :: Union{AbstractMatrix, Nothing}
-	
 end
 
 """
-	RegularNetwork(N, k)
+	RegularNetwork(N::Integer, k::Integer; directed::Bool=false)
 
 Create a regular network with `N` nodes and node connectivity `k`.
 """
-function RegularNetwork(N::Integer, k::Integer)
+function RegularNetwork(N::Integer, k::Integer; directed::Bool=false)
 	(N <= 0) && throw(ArgumentError("Number of nodes must be a positive integer!"))
 	
 	(k % 2 == 1) && (k -= 1)
 	(k < 0) && (k = 0)
-	(k >= N) && (k = N)
+	(k >= N-1) && (k = N-1)
 	
-	return RegularNetwork(N, k, Int(k * N / 2), nothing)
+	numConnections = k * N
+	directed || (numConnections = Int(numConnections / 2))
+	
+	RegularNetwork(N, k, numConnections, directed, nothing)
 end
 
 	
 function calcAdjMat!(network::RegularNetwork)
-	network._adjMat = SparseArrays.spzeros(Bool, network.N, network.N)
+	if network.k >= network.N-1
+		network._adjMat = adjMat(GlobalNetwork(network.N))
+		return
+	end
+	
+	network._adjMat = adjMat(EmptyNetwork(network.N), sparse=true)
+	(network.k <= 0) && (return)
 	
 	for i in 1:network.N
 		c = 1

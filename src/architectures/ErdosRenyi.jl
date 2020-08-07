@@ -1,9 +1,14 @@
 """
-- `N :: Integer`: Number of nodes
-- `p :: Float64`: Connection probability
-- `numConnections :: Integer`: Number of connections
-- `directed :: Bool`: Wheter the network is directed or not
-- `seed :: Integer`: Seed for the random creation
+	ErdosRenyiNetwork <: AbstractNetwork
+
+A random network contructed via the Erdos-Renyi method.
+
+# Fields
+- N              :: Integer -> Number of nodes
+- p              :: Float64 -> Connection probability
+- numConnections :: Integer -> Number of connections
+- directed       :: Bool    -> Wheter the network is directed or not
+- seed           :: Integer -> Seed for the random creation
 """
 struct ErdosRenyiNetwork <: AbstractNetwork
 	N :: Integer
@@ -13,48 +18,46 @@ struct ErdosRenyiNetwork <: AbstractNetwork
 	seed :: Integer
 	
 	_adjMat :: AbstractMatrix
-	
-	"""
-		ErdosRenyiNetwork(N, p; directed=false, seed=-1)
-	
-	Creates a random network with `N` nodes and connection probability `p` via the Erdos-Renyi
-	method.
-	"""	
-	function ErdosRenyiNetwork(
-		N::Integer,
-		p::Float64;
-		directed::Bool=false,
-		seed::Integer=-1
-	)
-		(N <= 0) && throw(ArgumentError("Number of nodes must be a positive integer!"))
-		
-		_seed = seed < 0 ? rand(1:999999999) : seed
-		mat = generateERAdjMat(N, p; directed, seed=_seed)
-		numConnections = sum(mat)
-		directed || (numConnections /= 2)
-		
-		new(N, p, Int(numConnections), directed, _seed, mat)
-	end
-	
-	"""
-		ErdosRenyiNetwork(N, numConnections; directed=false, seed=-1)
-	
-	Creates a random network with `N` nodes and `numConnections` connections via the Erdos-Renyi
-	method.
-	"""
-	function ErdosRenyiNetwork(
-		N::Integer,
-		numConnections::Integer;
-		directed::Bool=false,
-		seed::Integer=-1
-	)
-		(N <= 0) && throw(ArgumentError("Number of nodes must be a positive integer!"))
-		
-		_seed = seed < 0 ? rand(1:999999999) : seed
-		mat = generateERAdjMat(N, numConnections; directed, seed=_seed)
+end
 
-		new(N, nothing, numConnections, directed, _seed, mat)
-	end
+"""
+	ErdosRenyiNetwork(N, p; directed=false, seed=-1)
+
+Create an erdos-renyi random network with `N` nodes and connection probability `p`.
+"""	
+function ErdosRenyiNetwork(
+	N::Integer,
+	p::Float64;
+	directed::Bool=false,
+	seed::Integer=-1
+)
+	(N <= 0) && throw(ArgumentError("Number of nodes must be a positive integer!"))
+	
+	_seed = seed < 0 ? rand(1:999999999) : seed
+	mat = generateERAdjMat(N, p; directed, seed=_seed)
+	numConnections = sum(mat)
+	directed || (numConnections /= 2)
+	
+	ErdosRenyiNetwork(N, p, Int(numConnections), directed, _seed, mat)
+end
+
+"""
+	ErdosRenyiNetwork(N, numConnections; directed=false, seed=-1)
+
+Create an erdos-renyi random network with `N` nodes and `numConnections` connections.
+"""
+function ErdosRenyiNetwork(
+	N::Integer,
+	numConnections::Integer;
+	directed::Bool=false,
+	seed::Integer=-1
+)
+	(N <= 0) && throw(ArgumentError("Number of nodes must be a positive integer!"))
+	
+	_seed = seed < 0 ? rand(1:999999999) : seed
+	mat = generateERAdjMat(N, numConnections; directed, seed=_seed)
+
+	ErdosRenyiNetwork(N, nothing, numConnections, directed, _seed, mat)
 end
 
 

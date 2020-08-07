@@ -1,9 +1,10 @@
 abstract type AbstractNetwork end
 
 """
-	adjMat(network::AbstractNetwork)
+	adjMat(network::AbstractNetwork, sparse::Bool=false)
 
-Returns the adjacency matrix of the network
+Return the adjacency matrix of the network.
+If `sparse` is true, return a sparse version of the matrix.
 """
 function adjMat(network::AbstractNetwork; sparse::Bool=false)
 	isnothing(network._adjMat) && calcAdjMat!(network)
@@ -13,7 +14,7 @@ end
 """
 	adjVet(network::AbstractNetwork)
 
-Returns the adjacency vector of the network
+Return the adjacency vector of the network
 """
 function adjVet(network::AbstractNetwork)
 	isnothing(network._adjMat) && calcAdjMat!(network)
@@ -38,7 +39,7 @@ end
 """
 	calcAdjMat!(network::AbstractNetwork)
 
-Calculates the adjacency matrix of a network, and stores it on the object.
+Calculate the adjacency matrix of a network, and stores it on the object.
 
 To get the adjacency matrix use the function `adjMat`
 """

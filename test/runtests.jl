@@ -2,7 +2,9 @@ using AdjacencyArrays, Test, SparseArrays
 
 function tests()
 	@testset "Global" begin
-		@test GlobalNetwork(10).N == 10
+		net = GlobalNetwork(10)
+		@test net.N == 10
+		@test net.numConnections == 10 * 9 / 2
 		
 		net = GlobalNetwork(4)
 		@test adjVet(net) == [1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14]

@@ -1,4 +1,13 @@
+"""
+	RegularNetwork <: AbstractNetwork
 
+A regular (ring) network.
+
+# Fields
+- N              :: Integer -> Number of nodes
+- k              :: Integer -> Node connectivity
+- numConnections :: Integer -> Number of connections
+"""
 mutable struct RegularNetwork <: AbstractNetwork
 	N :: Integer
 	k :: Integer
@@ -6,21 +15,23 @@ mutable struct RegularNetwork <: AbstractNetwork
 	
 	_adjMat :: Union{AbstractMatrix, Nothing}
 	
-	"""
-		RegularNetwork(N, k)
-	
-	Creates a regular network with `N` nodes and node connectivity `k`.
-	"""
-	function RegularNetwork(N::Integer, k::Integer)
-		(N <= 0) && throw(ArgumentError("Number of nodes must be a positive integer!"))
-		
-		(k % 2 == 1) && (k -= 1)
-		(k < 0) && (k = 0)
-		(k >= N) && (k = N)
-		
-		return new(N, k, Int(k * N / 2), nothing)
-	end
 end
+
+"""
+	RegularNetwork(N, k)
+
+Create a regular network with `N` nodes and node connectivity `k`.
+"""
+function RegularNetwork(N::Integer, k::Integer)
+	(N <= 0) && throw(ArgumentError("Number of nodes must be a positive integer!"))
+	
+	(k % 2 == 1) && (k -= 1)
+	(k < 0) && (k = 0)
+	(k >= N) && (k = N)
+	
+	return RegularNetwork(N, k, Int(k * N / 2), nothing)
+end
+
 	
 function calcAdjMat!(network::RegularNetwork)
 	network._adjMat = SparseArrays.spzeros(Bool, network.N, network.N)

@@ -18,3 +18,5 @@ end
 function adjMat(network::GlobalNetwork)
 	return BitArray([(i != j) for i in 1:network.N, j in 1:network.N ])
 end
+
+show(network::GlobalNetwork) = println("Global Network\n- N = $(network.N)")

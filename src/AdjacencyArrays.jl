@@ -1,7 +1,7 @@
 module AdjacencyArrays
 
 import SparseArrays, Random
-import Base.display
+import Base.show, Base.display
 
 include("utils.jl")
 include("operators.jl")
@@ -9,8 +9,9 @@ include("operators.jl")
 include("architectures/AbstractNetwork.jl")
 include("architectures/Global.jl")
 include("architectures/Regular.jl")
+include("architectures/ErdosRenyi.jl")
 
-export GlobalNetwork, RegularNetwork
+export AbstractNetwork, GlobalNetwork, RegularNetwork, ErdosRenyiNetwork
 
 export adjVet, adjMat
 export adjVetToMat, adjMatToVet

@@ -1,8 +1,5 @@
 abstract type AbstractNetwork end
 
-display(network::AbstractNetwork) = "Network - N=$(network.N)"
-
-
 """
 	adjMat(network::AbstractNetwork)
 
@@ -48,3 +45,7 @@ To get the adjacency matrix use the function `adjMat`
 function calcAdjMat!(network::AbstractNetwork)
 	error("No adjacency matrix calculators were found for a network of type $(typeof(network))")
 end
+
+
+show(network::AbstractNetwork) = println("Network\n- N = $(network.N)")
+display(network::AbstractNetwork) = show(network)

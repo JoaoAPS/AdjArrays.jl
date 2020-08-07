@@ -1,5 +1,3 @@
-using LightGraphs
-
 """
 - `N :: Integer`: Number of nodes
 - `p :: Float64`: Connection probability
@@ -7,12 +5,13 @@ using LightGraphs
 - `directed :: Bool`: Wheter the network is directed or not
 - `seed :: Integer`: Seed for the random creation
 """
-struct ErdosRenyiNetwork
+struct ErdosRenyiNetwork <: AbstractNetwork
 	N :: Integer
-	p :: Float64
+	p :: Union{Float64, Nothing}
 	numConnections :: Integer
 	directed :: Bool
 	seed :: Integer
+	
 	_adjMat :: AbstractMatrix
 	
 	"""
@@ -21,55 +20,110 @@ struct ErdosRenyiNetwork
 	Creates a random network with `N` nodes and connection probability `p` via the Erdos-Renyi
 	method.
 	"""	
-	function ErdosRenyiNetwork(N::Integer,
+	function ErdosRenyiNetwork(
+		N::Integer,
 		p::Float64;
 		directed::Bool=false,
 		seed::Integer=-1
 	)
 		(N <= 0) && throw(ArgumentError("Number of nodes must be a positive integer!"))
-		(0 < p < 1) || throw(ArgumentError("Connection probability must be between zero and one!"))
 		
 		_seed = seed < 0 ? rand(1:999999999) : seed
-		graph = erdos_renyi(N, p, is_directed=directed, seed=_seed)
-		mat = adjacency_matrix(graph)
-		numConections = ne(graph)
+		mat = generateERAdjMat(N, p; directed, seed=_seed)
+		numConnections = sum(mat)
+		directed || (numConnections /= 2)
 		
-		new(N, p, numConections, directed, _seed, mat)
+		new(N, p, Int(numConnections), directed, _seed, mat)
 	end
 	
 	"""
-		ErdosRenyiNetwork(N, numConections; directed=false, seed=-1)
+		ErdosRenyiNetwork(N, numConnections; directed=false, seed=-1)
 	
-	Creates a random network with `N` nodes and `numConections` connections via the Erdos-Renyi
+	Creates a random network with `N` nodes and `numConnections` connections via the Erdos-Renyi
 	method.
 	"""
 	function ErdosRenyiNetwork(
 		N::Integer,
-		numConections::Integer;
+		numConnections::Integer;
 		directed::Bool=false,
 		seed::Integer=-1
 	)
 		(N <= 0) && throw(ArgumentError("Number of nodes must be a positive integer!"))
-		(numConections <= 0) &&
-			throw(ArgumentError("Number of connections must be a positive integer!"))
-		
-		maxConnections = directed ? N * (N - 1) : N * (N - 1) / 2
-		(numConections > maxConnections) &&
-			throw(ArgumentError("Maximum number of connections for this network is $numConections"))
 		
 		_seed = seed < 0 ? rand(1:999999999) : seed
-		graph = erdos_renyi(N, numConections, is_directed=directed, seed=_seed)
-		mat = adjacency_matrix(graph)
-		p = numConections / maxConnections
-		
-		new(N, p, numConections, directed, _seed, mat)
+		mat = generateERAdjMat(N, numConnections; directed, seed=_seed)
+
+		new(N, nothing, numConnections, directed, _seed, mat)
 	end
 end
 
-function adjMat(network::ErdosRenyiNetwork; sparse::Bool=false)
-	return sparse ? network._adjMat : BitArray(network._adjMat)
+
+function generateERAdjMat(
+	N::Integer,
+	p::Float64;
+	directed::Bool,
+	seed::Integer
+)
+	(p >= 1) && (return adjMat(GlobalNetwork(N)))
+	(p <= 0) && (return SparseArrays.spzeros(N,N))
+	
+	rng = Random.MersenneTwister(seed)
+	mat = SparseArrays.spzeros(Bool, N, N)
+	
+	if directed
+		for i in 1:N, j in 1:N
+			(i == j) && continue
+			(rand(rng) < p) && (mat[i,j] = 1)
+		end
+	else
+		for i in 1:N, j in i+1:N
+			if rand(rng) < p
+				mat[i,j] = 1
+				mat[j,i] = 1
+			end
+		end
+	end
+	
+	return mat
 end
 
-function adjVet(network::ErdosRenyiNetwork)
-	return adjMatToVet(network._adjMat)
+function generateERAdjMat(
+	N::Integer,
+	numConnections::Int;
+	directed::Bool,
+	seed::Integer
+)
+	maxConnections = Int(N * (N - 1) / 2)
+	directed || (maxConnections /= 2)
+	
+	(numConnections >= maxConnections) && (return adjMat(GlobalNetwork(N)))
+	(numConnections <= 0) && (return SparseArrays.spzeros(Bool, N, N))
+	
+	rng = Random.MersenneTwister(seed)
+	mat = SparseArrays.spzeros(Bool, N, N)
+	nc = 0
+	
+	while nc < numConnections
+		# Choose a random non-existing connection
+		origin = rand(rng, 1:N)
+		dest   = rand(rng, 1:N)
+
+		(origin == dest) && continue
+		(mat[dest, origin] == 1) && continue
+		
+		mat[dest, origin] = 1
+		directed || (mat[origin, dest] = 1)
+		nc += 1
+	end
+	
+	return mat
+end
+
+function show(network::ErdosRenyiNetwork)
+	println("Erdos-Renyi Random Network")
+	println("- N = $(network.N)")
+	println("- p = $(network.p)")
+	println("- numConnections = $(network.numConnections)")
+	println("- directed = $(network.directed)")
+	println("- seed = $(network.seed)")
 end

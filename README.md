@@ -6,12 +6,23 @@ network architectures.
 Also provides extra funcionalities.
 
 #### Currently available architectures:
+- Empty
 - Global
-- Random (Erdős–Rényi)
+- Regular
+- Erdős–Rényi (random)
+- Watts-Strogatz (small-world)
 
-#### Funcionalities
-- Convertion between adjacency matrices and adjacency vectors
+#### Available functions
+- `numnodes(network)` : Return the number of nodes on the network
+- `numconnections(network)` : Return the number of connections on the network
+- `isdirected(network)` : Return wheter the network is directed or not
+- `meanconnectivity(network)` : Return the number of nodes on the network
+- `numshortcuts(network)` : (small-world networks only) Return the number of shortcuts added/rewired on the network
 
+- `adjMat(network)` : Return the adjacency matrix of the network
+- `adjVet(network)` : Return the adjacency vector of the network
+- `adjMatToVet(mat)` : Return the corresponding adjacency vector of the adjacency matrix passed
+- `adjVetToMat(vet, N)` : Return the corresponding adjacency matrix of the adjacency vector passed
 
 ## Use
 
@@ -22,9 +33,10 @@ First create a object of the desired architecture
 net = ErdosRenyiNetwork(10, 0.4)
 ```
 
-Call the functions `adjMat` and `adjVet` on the network object
+Call the desired functions on the network object
 
 ``` julia
+# Gets the adjacency matrix and vector of the created network
 v = adjVet(net)
 m = adjMat(net)
 ```
@@ -32,46 +44,57 @@ m = adjMat(net)
 
 ## References
 
-### Architectures
+#### EmptyNetwork
+A network with no connections between the nodes.
 
-#### GlobalNetwork
 ```julia
-GlobalNetwork(N)
+EmptyNetwork(N)
 ```
 - `N :: Integer` : Number of nodes
 
-#### ErdosRenyiNetwork (Random)
+#### GlobalNetwork
+A network in which all nodes are connected to all others.
+
 ```julia
-ErdosRenyiNetwork(N, p; directed, seed)
-ErdosRenyiNetwork(N, numConnections; ...)
+GlobalNetwork(N; directed=false)
+```
+- `N :: Integer` : Number of nodes
+- `directed :: Bool` : (default=false) Whether the connections are directed or not
+
+#### RegularNetwork
+A ring network in which all nodes are connected to the k nearest nodes.
+
+```julia
+RegularNetwork(N, k; directed=false)
+```
+- `N :: Integer` : Number of nodes
+- `k :: Integer` : Connectivity of the nodes. Must be even.
+- `directed :: Bool` : (default=false) Whether the connections are directed or not
+
+#### ErdosRenyiNetwork (Random)
+A network with random connections, following the Erdős–Rényi method.
+
+```julia
+ErdosRenyiNetwork(N, p; directed=false, seed=-1)
+ErdosRenyiNetwork(N, numConnections; directed=false, seed=-1)
 ```
 - `N :: Integer` : Number of nodes
 - `p :: Float`   : Connection probability
 - `numConnections :: Integer` : Number of connections
-- `directed :: Bool` : (default=false) Wheter the connections are directed or not
+- `directed :: Bool` : (default=false) Whether the connections are directed or not
 - `seed :: Integer` : (default=-1) The seed for the random creation. Negative for a random seed.
 
+#### WattsStrogatzNetwork (Small-world)
+A network contructed via the Watts-Strogatz method. May be of small-world archtecture.
 
-### Functionalities
-#### Adjacency matrix and Vector
-``` julia
-adjMat(network)
-adjVet(network)
+```julia
+WattsStrogatzNetwork(N, k, &beta;; directed=false, seed=-1)
+WattsStrogatzNetwork(N, k, numShortcuts; directed=false, seed=-1)
 ```
-
-
-#### Convertion
-##### Adjacency matrix to adjacency vector
-``` julia
-adjMatToVet(mat)
-```
-
-- `mat :: BitArray{2}` : Adjacency matrix
-
-##### Adjacency vector to adjacency matrix
-``` julia
-adjVetToMat(vet, N)
-```
-- `vet :: Vector{<:Integer}` : Adjacency vector
 - `N :: Integer` : Number of nodes
+- `k :: Integer` : Mean connectivity of the network. Must be even.
+- `&beta; :: Float`   : Rewiring probability
+- `numShortcuts :: Integer` : Number of shortcuts rewired
+- `directed :: Bool` : (default=false) Whether the connections are directed or not
+- `seed :: Integer` : (default=-1) The seed for the random creation. Negative for a random seed.
 

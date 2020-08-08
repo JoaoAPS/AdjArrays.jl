@@ -26,7 +26,7 @@ maxconnections(network::AbstractNetwork) =
 """
 	isdirected(network::AbstractNetwork)
 
-Return wheter or not the network is directed.
+Return whether or not the network is directed.
 """
 isdirected(network::AbstractNetwork) = network._props.directed
 

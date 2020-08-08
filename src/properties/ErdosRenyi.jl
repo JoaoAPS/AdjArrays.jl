@@ -9,7 +9,7 @@ function generateERAdjMat(
 	(p <= 0) && (return adjMat(EmptyNetwork(N)))
 	
 	rng = Random.MersenneTwister(seed)
-	mat = adjMat(EmptyNetwork(N))
+	mat = adjMat(EmptyNetwork(N), sparse=true)
 	
 	if directed
 		for i in 1:N, j in 1:N
@@ -41,7 +41,7 @@ function generateERAdjMat(
 	(numConnections <= 0) && (return adjMat(EmptyNetwork(N)))
 	
 	rng = Random.MersenneTwister(seed)
-	mat = adjMat(EmptyNetwork(N))
+	mat = adjMat(EmptyNetwork(N), sparse=true)
 	nc = 0
 	
 	while nc < numConnections

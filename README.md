@@ -88,12 +88,12 @@ ErdosRenyiNetwork(N, numConnections; directed=false, seed=-1)
 A network contructed via the Watts-Strogatz method. May be of small-world archtecture.
 
 ```julia
-WattsStrogatzNetwork(N, k, &beta;; directed=false, seed=-1)
+WattsStrogatzNetwork(N, k, β; directed=false, seed=-1)
 WattsStrogatzNetwork(N, k, numShortcuts; directed=false, seed=-1)
 ```
 - `N :: Integer` : Number of nodes
 - `k :: Integer` : Mean connectivity of the network. Must be even.
-- `&beta; :: Float`   : Rewiring probability
+- `β :: Float`   : Rewiring probability &beta;
 - `numShortcuts :: Integer` : Number of shortcuts rewired
 - `directed :: Bool` : (default=false) Whether the connections are directed or not
 - `seed :: Integer` : (default=-1) The seed for the random creation. Negative for a random seed.

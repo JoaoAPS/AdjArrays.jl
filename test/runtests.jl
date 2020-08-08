@@ -1,6 +1,13 @@
 using AdjacencyArrays, Test, SparseArrays
 
 function tests()
+	@testset "Empty" begin
+		net = EmptyNetwork(10)
+	    @test net.N == 10
+	    @test adjMat(net) == zeros(10, 10)
+	    @test adjVet(net) == []
+	end
+	
 	@testset "Global" begin
 		net = GlobalNetwork(10)
 		@test net.N == 10
@@ -14,9 +21,6 @@ function tests()
 			1 1 0 1;
 			1 1 1 0
 		])
-		
-		@test_throws ArgumentError GlobalNetwork(-2)
-		@test_throws ArgumentError GlobalNetwork(0)
 	end
 	
 	@testset "Regular" begin
@@ -59,10 +63,6 @@ function tests()
 		@test net.k == 10
 		@test adjMat(net) == adjMat(GlobalNetwork(11))
 		@test net.numConnections == sum(adjMat(net)) / 2
-	    
-		# Argument errors
-	    @test_throws ArgumentError RegularNetwork(0, 1)
-	    @test_throws ArgumentError RegularNetwork(-2, 1)
 	end
 	
 	@testset "ErdosRenyi p-initialized" begin
@@ -91,12 +91,8 @@ function tests()
 		# Argument manip
 		@test ErdosRenyiNetwork(10, -1.).p == 0.0
 		@test ErdosRenyiNetwork(10, 1.2).p == 1.0
-		@test adjMat(ErdosRenyiNetwork(10, -1.)) == BitArray(zeros(10, 10))
+		@test adjMat(ErdosRenyiNetwork(10, -1.)) == adjMat(EmptyNetwork(10))
 		@test adjMat(ErdosRenyiNetwork(10, 1.2)) == adjMat(GlobalNetwork(10))
-		
-		# Argument errors
-		@test_throws ArgumentError ErdosRenyiNetwork(-2, 0.5)
-		@test_throws ArgumentError ErdosRenyiNetwork(0, 0.5)
 	end
 	
 	@testset "ErdosRenyi numConnections-initialized" begin
@@ -127,12 +123,8 @@ function tests()
 		# Argument manip
 		@test ErdosRenyiNetwork(10, -1).numConnections == 0
 		@test ErdosRenyiNetwork(10, 100).numConnections == 45
-		@test adjMat(ErdosRenyiNetwork(10, -1))  == BitArray(zeros(10, 10))
+		@test adjMat(ErdosRenyiNetwork(10, -1))  == adjMat(EmptyNetwork(10))
 		@test adjMat(ErdosRenyiNetwork(10, 100)) == adjMat(GlobalNetwork(10))
-		
-		# Argument errors
-		@test_throws ArgumentError ErdosRenyiNetwork(-2, 1)
-		@test_throws ArgumentError ErdosRenyiNetwork(0, 0)
 	end
 	
 	@testset "WattsStrogatz β-initialized" begin
@@ -185,10 +177,6 @@ function tests()
 		net = WattsStrogatzNetwork(10, 2, 1.5)
 		@test net.β == 1.0
 		@test net.numShortcuts == net.numConnections
-		
-		# Argument errors
-		@test_throws ArgumentError WattsStrogatzNetwork(-2, 2, 0.5)
-		@test_throws ArgumentError WattsStrogatzNetwork(0, 2, 0.5)
 	end
 	
 	@testset "WattsStrogatz numShortcuts-initialized" begin
@@ -239,12 +227,45 @@ function tests()
 
 		net = WattsStrogatzNetwork(10, 2, 40)
 		@test net.numShortcuts == net.numConnections
-		
-		# Argument errors
-		@test_throws ArgumentError WattsStrogatzNetwork(-2, 2, 10)
-		@test_throws ArgumentError WattsStrogatzNetwork(0, 2, 10)
 	end
 	
+	
+	@testset "Trivial Networks" begin
+		# N = 1
+		trivialAdjMat = BitMatrix([0 for i in [1], j in [1]])
+		
+		@test adjMat(EmptyNetwork(1)) == trivialAdjMat
+		@test adjMat(GlobalNetwork(1)) == trivialAdjMat
+		@test adjMat(RegularNetwork(1, 2)) == trivialAdjMat
+		@test adjMat(ErdosRenyiNetwork(1, 0.4)) == trivialAdjMat
+		@test adjMat(ErdosRenyiNetwork(1, 4)) == trivialAdjMat
+		@test adjMat(WattsStrogatzNetwork(1, 2, 0.4)) == trivialAdjMat
+		@test adjMat(WattsStrogatzNetwork(1, 2, 4)) == trivialAdjMat
+		
+		@test adjVet(EmptyNetwork(1)) == []
+		@test adjVet(GlobalNetwork(1)) == []
+		@test adjVet(RegularNetwork(1, 2)) == []
+		@test adjVet(ErdosRenyiNetwork(1, 0.4)) == []
+		@test adjVet(ErdosRenyiNetwork(1, 4)) == []
+		@test adjVet(WattsStrogatzNetwork(1, 2, 0.4)) == []
+		@test adjVet(WattsStrogatzNetwork(1, 2, 4)) == []
+		
+		# N < 1
+		@test_throws ArgumentError EmptyNetwork(0)
+		@test_throws ArgumentError EmptyNetwork(-2)
+		@test_throws ArgumentError GlobalNetwork(0)
+		@test_throws ArgumentError GlobalNetwork(-2)
+		@test_throws ArgumentError RegularNetwork(0, 2)
+		@test_throws ArgumentError RegularNetwork(-2, 2)
+		@test_throws ArgumentError ErdosRenyiNetwork(0, 0.4)
+		@test_throws ArgumentError ErdosRenyiNetwork(-2, 0.4)
+		@test_throws ArgumentError ErdosRenyiNetwork(0, 4)
+		@test_throws ArgumentError ErdosRenyiNetwork(-2, 4)
+		@test_throws ArgumentError WattsStrogatzNetwork(0, 2, 0.4)
+		@test_throws ArgumentError WattsStrogatzNetwork(-2, 2, 0.4)
+		@test_throws ArgumentError WattsStrogatzNetwork(0, 2, 4)
+		@test_throws ArgumentError WattsStrogatzNetwork(-2, 2, 4)
+	end
 	
 	@testset "Converters" begin
 		net = RegularNetwork(10, 4)

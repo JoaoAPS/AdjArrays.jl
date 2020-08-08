@@ -202,10 +202,7 @@ function show(network::WattsStrogatzNetwork)
 	println("- N = $(network.N)")
 	println("- k = $(network.k)")
 	println("- β = $(network.β)")
-	println("- numConnections = $(network.numConnections)")
 	println("- numShortcuts = $(network.numShortcuts)")
 	println("- directed = $(network.directed)")
 	println("- seed = $(network.seed)")
 end
-
-display(network::WattsStrogatzNetwork) = show(network)

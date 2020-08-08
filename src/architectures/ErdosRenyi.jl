@@ -76,10 +76,10 @@ function generateERAdjMat(
 	seed::Integer
 )
 	(p >= 1) && (return adjMat(GlobalNetwork(N)))
-	(p <= 0) && (return SparseArrays.spzeros(N,N))
+	(p <= 0) && (return adjMat(EmptyNetwork(N)))
 	
 	rng = Random.MersenneTwister(seed)
-	mat = SparseArrays.spzeros(Bool, N, N)
+	mat = adjMat(EmptyNetwork(N))
 	
 	if directed
 		for i in 1:N, j in 1:N
@@ -108,10 +108,10 @@ function generateERAdjMat(
 	directed || (maxConnections /= 2)
 	
 	(numConnections >= maxConnections) && (return adjMat(GlobalNetwork(N)))
-	(numConnections <= 0) && (return SparseArrays.spzeros(Bool, N, N))
+	(numConnections <= 0) && (return adjMat(EmptyNetwork(N)))
 	
 	rng = Random.MersenneTwister(seed)
-	mat = SparseArrays.spzeros(Bool, N, N)
+	mat = adjMat(EmptyNetwork(N))
 	nc = 0
 	
 	while nc < numConnections
@@ -134,7 +134,6 @@ function show(network::ErdosRenyiNetwork)
 	println("Erdos-Renyi Random Network")
 	println("- N = $(network.N)")
 	println("- p = $(network.p)")
-	println("- numConnections = $(network.numConnections)")
 	println("- directed = $(network.directed)")
 	println("- seed = $(network.seed)")
 end

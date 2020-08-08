@@ -4,7 +4,7 @@ import SparseArrays, Random
 import Base.show, Base.display
 
 include("utils.jl")
-include("operators.jl")
+include("operators/converters.jl")
 
 include("architectures/AbstractNetwork.jl")
 include("architectures/Empty.jl")

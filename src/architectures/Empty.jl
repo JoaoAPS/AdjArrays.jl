@@ -20,14 +20,4 @@ struct EmptyNetwork <: AbstractNetwork
 	end
 end
 
-	
-
-adjVet(network::EmptyNetwork) = []
-
-function adjMat(network::EmptyNetwork; sparse::Bool=false)
-	return sparse ?
-		SparseArrays.spzeros(Bool, network.N, network.N) :
-		BitArray(zeros(Bool, network.N, network.N))
-end
-
 show(network::EmptyNetwork) = println("Empty Network\n- N = $(network.N)")

@@ -5,30 +5,25 @@ A global (complete) network.
 
 # Fields
 - N              :: Integer -> Number of nodes
-- numConnections :: Integer -> Number of connections
 """
 struct GlobalNetwork <: AbstractNetwork
 	N :: Integer
-	numConnections :: Integer
+	_props :: NetworkProperties
 end
 
 """
-	GlobalNetwork(N::Integer)
+	GlobalNetwork(N::Integer; directed::Bool=false)
 
 Create a global network with `N` nodes
 """
-function GlobalNetwork(N::Integer)
+function GlobalNetwork(N::Integer; directed::Bool=false)
 	(N <= 0) && throw(ArgumentError("Number of nodes must be a positive integer!"))
-	GlobalNetwork(N, N * (N-1) / 2)
-end
-	
-
-function adjVet(network::GlobalNetwork)
-	return [i for i in 0:network.N^2-1 if i % (network.N + 1) != 0]
+	GlobalNetwork(N, NetworkProperties(directed))
 end
 
-function adjMat(network::GlobalNetwork; sparse::Bool=false)
-	return BitArray([(i != j) for i in 1:network.N, j in 1:network.N ])
-end
 
-show(network::GlobalNetwork) = println("Global Network\n- N = $(network.N)")
+function show(network::GlobalNetwork)
+	print(isdirected(network) ? "Directed " : "Undirected ")
+	println("Global Network")
+	println("- N = $(network.N)")
+end

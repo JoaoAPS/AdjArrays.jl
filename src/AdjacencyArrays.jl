@@ -10,7 +10,10 @@ export RegularNetwork
 export ErdosRenyiNetwork
 export WattsStrogatzNetwork
 
-export numnodes, numconnections, isdirected, meanconnectivity, numshortcuts
+export numnodes, numconnections, isdirected, numshortcuts
+export hasnode, hasconnection
+export connectivity, connectivities, meanconnectivity
+export clusteringcoefficient, clusteringcoefficients, transitivity
 export adjVet, adjMat
 export adjVetToMat, adjMatToVet
 export allEdges
@@ -33,10 +36,6 @@ include("properties/ErdosRenyi.jl")
 include("properties/WattsStrogatz.jl")
 
 include("operators/Abstract.jl")
-
-
-# include("operators/converters.jl")
-# include("operators/properties/Abstract.jl")
 
 
 

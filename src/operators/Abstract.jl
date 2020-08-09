@@ -1,4 +1,19 @@
 """
+	hasnode(network::AbstractNetwork, idx::Integer)
+
+Check whether the node exists in the network
+"""
+hasnode(network::AbstractNetwork, idx::Integer) = (0 < idx <= network.N)
+
+"""
+	hasconnection(network::AbstractNetwork, idx_origin::Integer, idx_dest::Integer)
+
+Check whether there exists a connections from node `idx_origin` to `idx_dest`
+"""
+hasconnection(network::AbstractNetwork, idx_origin::Integer, idx_dest::Integer) =
+	Bool(adjMat(network, sparse=true)[idx_dest, idx_origin])
+
+"""
 	allEdges(network::AbstractNetwork; first_index::Integer=1)
 	allEdges(adjacencyMatrix::AbstractMatrix, directed::Bool; first_index::Integer=1)
 
@@ -25,9 +40,30 @@ allEdges(network::AbstractNetwork; first_index::Integer=1) =
 
 
 """
+	neighbors(network::AbstractNetwork, idx_node::Integer)
+
+Return a vector with the indices of the neighbors of the passed node.
+"""
+function neighbors(network::AbstractNetwork, idx_node::Integer)
+	hasnodeOrError(network, idx_node)
+	
+	if isdirected(network)
+		println("Não sei calcular vizinhos de direcionado. Retornando nada")
+		return
+	else
+		mat = adjMat(network, sparse=true)
+		return [i for i in 1:network.N if mat[i, idx_node]]
+	end
+end
+		
+
+
+"""
 	adjVetToMat(vet::Vector, N::Integer)
 
 Calculate the adjacency matrix based on the adjacency vector.
+
+See also: `adjMatToVet`
 """
 function adjVetToMat(vet::Vector{<:Integer}, N::Integer)
 	mat = BitArray(0 for i in 1:N, j in 1:N)
@@ -53,6 +89,8 @@ end
 	adjMatToVet(mat::AbstractMatrix)
 
 Calculate the adjacency vector based on the adjacency matrix.
+
+See also: `adjVetToMat`
 """
 function adjMatToVet(mat::SparseArrays.AbstractSparseMatrix)
 	vet = Array{Int}(undef, length(mat.rowval))
@@ -98,4 +136,16 @@ function adjMatToVet(mat::AbstractArray{<:Real,2})
 	end
 	
 	return adjMatToVet(BitArray(mat))
+end
+
+
+
+
+
+
+
+#------------- Utils -----------------
+function hasnodeOrError(network::AbstractNetwork, idx_node::Integer)
+	hasnode(network, idx_node) ||
+		throw(ArgumentError("Invalid node index! Node $idx_node doesn't exist in the network!"))
 end

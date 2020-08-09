@@ -6,6 +6,8 @@ function tests()
 	    @test numnodes(net) == 10
 	    @test numconnections(net) == 0
 	    @test !isdirected(net)
+	    @test connectivity(net, 1) == 0
+		@test connectivities(net) == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 	    @test meanconnectivity(net) == 0
 	    @test adjMat(net) == zeros(10, 10)
 	    @test adjVet(net) == []
@@ -17,6 +19,8 @@ function tests()
 		@test numnodes(net) == 10
 		@test numconnections(net) == 10 * 9 / 2
 		@test !isdirected(net)
+		@test connectivity(net, 1) == 9
+		@test connectivities(net) == [9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
 		@test meanconnectivity(net) == 9
 		
 		# Undirected
@@ -40,6 +44,8 @@ function tests()
 	    @test numnodes(net) == 10
 	    @test numconnections(net) == 20
 	    @test !isdirected(net)
+	    @test connectivity(net, 1) == 4
+		@test connectivities(net) == [4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
 	    @test meanconnectivity(net) == 4
 		
 		# Directed
@@ -286,7 +292,22 @@ function tests()
 		@test_throws ArgumentError WattsStrogatzNetwork(-2, 2, 4)
 	end
 	
-	@testset "Components" begin
+	@testset "Properties" begin
+		net = GlobalNetwork(10)
+	    @test_throws ArgumentError connectivity(net, 0)
+	    @test_throws ArgumentError connectivity(net, 11)
+	    
+	    @test clusteringcoefficient(net, 1) == 1
+	    @test clusteringcoefficient(net) == 1
+	    @test clusteringcoefficients(net) == repeat([1], 10)
+	    
+		net = RegularNetwork(20, 4)
+	    @test clusteringcoefficient(net, 1) == 0.5
+	    @test clusteringcoefficient(net) == 0.5
+	    @test clusteringcoefficients(net) == repeat([0.5], 20)
+	end
+	
+	@testset "Operators" begin
 		# Undirected netowrks
 		@test allEdges(EmptyNetwork(5)) == []
 	    @test allEdges(GlobalNetwork(4)) == [

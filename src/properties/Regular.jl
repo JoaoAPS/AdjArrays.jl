@@ -5,6 +5,8 @@ meanconnectivity(network::RegularNetwork) = network.k
 calcNumConnections!(network::RegularNetwork) =
 	network._props.numConnections = Int(network.k * network.N / (isdirected(network) ? 1 : 2))
 
+calcConnectivity(network::RegularNetwork) = network.k
+
 function calcAdjMat!(network::RegularNetwork)
 	if network.k >= network.N-1
 		network._adjMat = adjMat(GlobalNetwork(network.N))

@@ -1,6 +1,5 @@
 numconnections(network::EmptyNetwork) = 0
 isdirected(network::EmptyNetwork) = false
-connectivities(network::EmptyNetwork) = repeat([0], network.N)
 meanconnectivity(network::EmptyNetwork) = 0
 adjVet(network::EmptyNetwork) = Int[]
 
@@ -12,4 +11,5 @@ end
 
 
 #---------- Calculators ----------
-calcConnectivity(network::EmptyNetwork, idx_node::Integer) = 0
+calcConnectivity(network::EmptyNetwork, idx_node::Integer; degree::Symbol) =
+	degree == :both ? (0,0) : 0

@@ -32,37 +32,59 @@ isdirected(network::AbstractNetwork) = network._props.directed
 
 
 """
-	connectivity(network::AbstractNetwork, idx_node::Integer)
+	connectivity(network::AbstractNetwork, idx_node::Integer; degree::Symbol=:total)
 
 Return the connectivity of the specified node.
+If the network is directed, the `degree` parameter controls which connectivity is returned,
+`:in` for in-degree, `out` for out-degree, `:total` for the sum of in- and out-degree,
+`:mean` for the mean of in- and out-degree, and `:both` for both in- and out-degree.
 
 See also: `connectivities`, `meanconnectivity`
 """
-function connectivity(network::AbstractNetwork, idx_node::Integer)
+function connectivity(
+		network::AbstractNetwork,
+		idx_node::Integer;
+		degree::Union{Symbol, String}=:total
+	)
 	hasnodeOrError(network, idx_node)
-	return calcConnectivity(network, idx_node)
+	
+	degree = Symbol(degree)
+	if isdirected(network) && ! (degree in [:total, :in, :out, :mean, :both])
+		throw(ArgumentError(
+			"degree parameter must be one of the follwing: :total, :in, :out, :mean, :both"
+		))
+	end
+	
+	return calcConnectivity(network, idx_node; degree)
 end
 
 """
-	connectivities(network::AbstractNetwork)
+	connectivities(network::AbstractNetwork; degree::Symbol=:total)
 
 Return the connectivities of the all node of the network.
 
+If the network is directed, the `degree` parameter controls which connectivity is returned,
+`:in` for in-degree, `out` for out-degree, `:total` for the sum of in- and out-degree,
+`:mean` for the mean of in- and out-degree, and `:both` for both in- and out-degree.
+
 See also: `connectivity`, `meanconnectivity`
 """
-function connectivities(network::AbstractNetwork)
-	mat = adjMat(network, sparse=true)
-	return [sum(mat[:,i]) for i in 1:network.N]
-end
+connectivities(network::AbstractNetwork; degree::Symbol=:total) = 
+	[connectivity(network, i; degree) for i in 1:network.N]
 
 """
 	meanconnectivity(network::AbstractNetwork)
 
 Return the mean connectivity of the network.
 
+If the network is directed, the `degree` parameter controls which connectivity is returned,
+`:in` for in-degree, `out` for out-degree, `:total` for the sum of in- and out-degree,
+`:mean` for the mean of in- and out-degree, and `:both` for both in- and out-degree.
+
+
 See also: `connectivity`, `connectivities`
 """
-function meanconnectivity(network::AbstractNetwork)
+function meanconnectivity(network::AbstractNetwork; degree::Symbol=:total)
 	isnothing(network._props.meanConnectivity) && calcMeanConnectivity!(network)
 	return network._props.meanConnectivity
 end
@@ -149,8 +171,19 @@ function calcNumConnections!(network::AbstractNetwork)
 		Int( sum(adjMat(network, sparse=true)) / (isdirected(network) ? 1 : 2) )
 end
 
-calcConnectivity(network::AbstractNetwork, idx_node::Integer) =
-	sum(adjMat(network, sparse=true)[:,idx_node])
+function calcConnectivity(network::AbstractNetwork, idx_node::Integer; degree::Symbol)
+	isdirected(network) || (return sum(adjMat(network, sparse=true)[:,idx_node]))
+	
+	mat = adjMat(network, sparse=true)
+	inDegree = sum(mat[idx_node,:])
+	outDegree = sum(mat[:,idx_node])
+	
+	(degree == :total) && (return inDegree + outDegree)
+	(degree == :in)    && (return inDegree)
+	(degree == :out)   && (return outDegree)
+	(degree == :mean)  && (return (inDegree + outDegree) / 2)
+	(degree == :both)  && (return (inDegree, outDegree))
+end
 
 function calcMeanConnectivity!(network::AbstractNetwork)
 	network._props.meanConnectivity = sum(adjMat(network, sparse=true)) / network.N

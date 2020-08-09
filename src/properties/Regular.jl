@@ -5,7 +5,13 @@ meanconnectivity(network::RegularNetwork) = network.k
 calcNumConnections!(network::RegularNetwork) =
 	network._props.numConnections = Int(network.k * network.N / (isdirected(network) ? 1 : 2))
 
-calcConnectivity(network::RegularNetwork) = network.k
+function calcConnectivity(network::RegularNetwork; degree::Symbol)
+	isdirected || (return network.k)
+	
+	(degree == :total) && (return 2 * network.k)
+	(degree == :both) && (return (network.k, network.k))
+	return network.k
+end
 
 function calcAdjMat!(network::RegularNetwork)
 	if network.k >= network.N-1

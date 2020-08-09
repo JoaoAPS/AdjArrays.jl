@@ -1,8 +1,6 @@
 numconnections(network::GlobalNetwork) =
 	Int(network.N * (network.N - 1) / (isdirected(network) ? 1 : 2))
 
-connectivities(network::GlobalNetwork) = repeat([network.N - 1], network.N)
-
 meanconnectivity(network::GlobalNetwork) = network.N - 1
 
 adjVet(network::GlobalNetwork) =
@@ -13,4 +11,10 @@ adjMat(network::GlobalNetwork; sparse::Bool=false) =
 
 
 #---------- Calculators ----------
-calcConnectivity(network::GlobalNetwork, idx_node::Integer) = network.N - 1
+function calcConnectivity(network::GlobalNetwork, idx_node::Integer; degree::Symbol)
+	isdirected(network) || (return network.N - 1)
+	
+	(degree == :total) && (return 2 * (network.N - 1))
+	(degree == :both) && (return (network.N - 1, network.N - 1))
+	return network.N - 1
+end

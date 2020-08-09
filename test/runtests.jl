@@ -293,10 +293,20 @@ function tests()
 	end
 	
 	@testset "Properties" begin
+		# Connectivity
 		net = GlobalNetwork(10)
 	    @test_throws ArgumentError connectivity(net, 0)
 	    @test_throws ArgumentError connectivity(net, 11)
 	    
+	    net = RegularNetwork(10, 4, directed=true)
+	    @test connectivity(net, 1, degree=:in) == 4
+	    @test connectivity(net, 1, degree=:out) == 4
+	    @test connectivity(net, 1, degree=:total) == 2 * 4
+	    @test connectivity(net, 1, degree=:mean) == 4
+	    @test connectivity(net, 1, degree=:both) == (4, 4)
+	    
+	    # Clustering Coefficient
+		net = GlobalNetwork(10)
 	    @test clusteringcoefficient(net, 1) == 1
 	    @test clusteringcoefficient(net) == 1
 	    @test clusteringcoefficients(net) == repeat([1], 10)
@@ -305,6 +315,9 @@ function tests()
 	    @test clusteringcoefficient(net, 1) == 0.5
 	    @test clusteringcoefficient(net) == 0.5
 	    @test clusteringcoefficients(net) == repeat([0.5], 20)
+	    
+		net = ErdosRenyiNetwork(1000, 0.2, seed=1234)
+	    @test clusteringcoefficient(net) ≈ 0.2 rtol=0.1
 	end
 	
 	@testset "Operators" begin

@@ -40,18 +40,29 @@ allEdges(network::AbstractNetwork; first_index::Integer=1) =
 
 
 """
-	neighbors(network::AbstractNetwork, idx_node::Integer)
+	neighbors(network::AbstractNetwork, idx_node::Integer; directed_behaviour::Symbol=:any)
 
 Return a vector with the indices of the neighbors of the passed node.
+
+If the network is directed the `directed_behaviour` can be used to specify
+the considered neighbors.
+`:origin` for nodes whose connections arive at the selected node,
+`:destination` for nodes in which connections from the selected node arive,
+and `:any` for the union of both previous groups.
 """
-function neighbors(network::AbstractNetwork, idx_node::Integer)
+function neighbors(network::AbstractNetwork, idx_node::Integer; directed_behaviour::Symbol=:any)
 	hasnodeOrError(network, idx_node)
+	mat = adjMat(network, sparse=true)
 	
 	if isdirected(network)
-		println("Não sei calcular vizinhos de direcionado. Retornando nada")
-		return
+		(directed_behaviour in [:origin, :destination, :any]) ||
+			throw(ArgumentError("directed_behaviour must be one of: :origin, :destination, :any"))
+		
+		(directed_behaviour == :origin) && (return [i for i in 1:network.N if mat[idx_node, i]])
+		(directed_behaviour == :destination) && (return [i for i in 1:network.N if mat[i, idx_node]])
+		(directed_behaviour == :any) &&
+			(return [i for i in 1:network.N if mat[i, idx_node] || mat[idx_node, i]])
 	else
-		mat = adjMat(network, sparse=true)
 		return [i for i in 1:network.N if mat[i, idx_node]]
 	end
 end

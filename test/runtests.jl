@@ -318,6 +318,16 @@ function tests()
 	    
 		net = ErdosRenyiNetwork(1000, 0.2, seed=1234)
 	    @test clusteringcoefficient(net) ≈ 0.2 rtol=0.1
+	    
+	    net = GlobalNetwork(10, directed=true)
+	    @test clusteringcoefficient(net, 1) == 1
+	    @test clusteringcoefficient(net) == 1
+	    @test clusteringcoefficients(net) == repeat([1], 10)
+	    
+		net = RegularNetwork(20, 4, directed=true)
+	    @test clusteringcoefficient(net, 1) == 0.5
+	    @test clusteringcoefficient(net) == 0.5
+	    @test clusteringcoefficients(net) == repeat([0.5], 20)
 	end
 	
 	@testset "Operators" begin

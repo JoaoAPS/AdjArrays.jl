@@ -37,7 +37,8 @@ isdirected(network::AbstractNetwork) = network._props.directed
 Return the connectivity of the specified node.
 If the network is directed, the `degree` parameter controls which connectivity is returned,
 `:in` for in-degree, `out` for out-degree, `:total` for the sum of in- and out-degree,
-`:mean` for the mean of in- and out-degree, and `:both` for both in- and out-degree.
+`:mean` for the mean of in- and out-degree, `:both` for both in- and out-degree, and
+`:bi` for the number of neighbors for which both in and out connections are present.
 
 See also: `connectivities`, `meanconnectivity`
 """
@@ -49,9 +50,9 @@ function connectivity(
 	hasnodeOrError(network, idx_node)
 	
 	degree = Symbol(degree)
-	if isdirected(network) && ! (degree in [:total, :in, :out, :mean, :both])
+	if isdirected(network) && ! (degree in [:total, :in, :out, :mean, :both, :bi])
 		throw(ArgumentError(
-			"degree parameter must be one of the follwing: :total, :in, :out, :mean, :both"
+			"degree parameter must be one of the follwing: :total, :in, :out, :mean, :both, :bi"
 		))
 	end
 	
@@ -65,7 +66,8 @@ Return the connectivities of the all node of the network.
 
 If the network is directed, the `degree` parameter controls which connectivity is returned,
 `:in` for in-degree, `out` for out-degree, `:total` for the sum of in- and out-degree,
-`:mean` for the mean of in- and out-degree, and `:both` for both in- and out-degree.
+`:mean` for the mean of in- and out-degree, `:both` for both in- and out-degree, and
+`:bi` for the number of neighbors for which both in and out connections are present.
 
 See also: `connectivity`, `meanconnectivity`
 """
@@ -79,7 +81,8 @@ Return the mean connectivity of the network.
 
 If the network is directed, the `degree` parameter controls which connectivity is returned,
 `:in` for in-degree, `out` for out-degree, `:total` for the sum of in- and out-degree,
-`:mean` for the mean of in- and out-degree, and `:both` for both in- and out-degree.
+`:mean` for the mean of in- and out-degree, `:both` for both in- and out-degree, and
+`:bi` for the number of neighbors for which both in and out connections are present.
 
 
 See also: `connectivity`, `connectivities`
@@ -183,49 +186,64 @@ function calcConnectivity(network::AbstractNetwork, idx_node::Integer; degree::S
 	(degree == :out)   && (return outDegree)
 	(degree == :mean)  && (return (inDegree + outDegree) / 2)
 	(degree == :both)  && (return (inDegree, outDegree))
+	(degree == :bi)    && (return sum(mat[idx_node, :] .& mat[:, idx_node]))
 end
 
-function calcMeanConnectivity!(network::AbstractNetwork)
-	network._props.meanConnectivity = sum(adjMat(network, sparse=true)) / network.N
-end
+calcMeanConnectivity!(network::AbstractNetwork) =
+	network._props.meanConnectivity = sum(connectivities(network)) / network.N
 
 function calcAdjMat!(network::AbstractNetwork)
 	error("No adjacency matrix calculators were found for a network of type $(typeof(network))")
 end
 
-
 function calcClusteringCoefficient(network::AbstractNetwork, idx_node::Integer)
+	# As in DOI: 10.1103/PhysRevE.76.026107
 	if isdirected(network)
-		println("Clustering Coefficient not supported for directed networks")
-		return
+		nb = neighbors(network, idx_node; directed_behaviour=:any)
+		totalDegree = connectivity(network, idx_node, degree=:total)
+		biDegree = connectivity(network, idx_node, degree=:bi)
+		
+		numPossibleTriangles = totalDegree * (totalDegree - 1) - 2 * biDegree
+		numExistingTriangles = 0		
+		
+		for n1 in nb, n2 in nb
+			(n1 == n2) && continue
+			
+			hasconnection(network, idx_node, n1) && hasconnection(network, n1, n2) &&
+				hasconnection(network, n2, idx_node) && (numExistingTriangles += 1)
+			
+			hasconnection(network, idx_node, n1) && hasconnection(network, n1, n2) &&
+				hasconnection(network, idx_node, n2) && (numExistingTriangles += 1)
+			
+			hasconnection(network, idx_node, n1) && hasconnection(network, n2, n1) &&
+				hasconnection(network, n2, idx_node) && (numExistingTriangles += 1)
+						
+			hasconnection(network, n1, idx_node) && hasconnection(network, n1, n2) &&
+				hasconnection(network, n2, idx_node) && (numExistingTriangles += 1)
+		end
+	else
+		nb = neighbors(network, idx_node)
+		numNeighbors = length(nb)
+		
+		numPossibleTriangles = numNeighbors * (numNeighbors - 1) / 2
+		numExistingTriangles = 0
+		
+		for i in 1:numNeighbors for j in i+1:numNeighbors
+			hasconnection(network, nb[i], nb[j]) && (numExistingTriangles += 1)
+		end end
 	end
-
-	nb = neighbors(network, idx_node)
-	numNeighbors = length(nb)
-	
-	numPossibleTriangles = Int(numNeighbors * (numNeighbors - 1) / 2)
-	numExistingTriangles = 0
-	
-	for i in 1:numNeighbors for j in i+1:numNeighbors
-		hasconnection(network, nb[i], nb[j]) && (numExistingTriangles += 1)
-	end end
 	
 	return numExistingTriangles == 0 ? 0 : numExistingTriangles / numPossibleTriangles
 end
 
 function calcClusteringCoefficients!(network::AbstractNetwork)
-	if isdirected(network)
-		println("Clustering Coefficient not supported for directed networks")
-		return
-	end
-
 	network._props.clusteringCoefficients =
 		[calcClusteringCoefficient(network, i) for i in 1:network.N]
 end
 
 function calcTransitivity!(network::AbstractNetwork)
 	numExistingTriangles = 0
-	numPossibleTriangles = 0 #Int(numNeighbors * (numNeighbors - 1) / 2)
+	numPossibleTriangles = 0
 
 	for idx_node in 1:network.N
 		nb = neighbors(network, idx_node)

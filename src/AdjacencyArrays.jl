@@ -16,7 +16,7 @@ export connectivity, connectivities, meanconnectivity
 export clusteringcoefficient, clusteringcoefficients, transitivity
 export adjVet, adjMat
 export adjVetToMat, adjMatToVet
-export allEdges
+export neighbors, allEdges
 
 include("utils.jl")
 include("architectures/AbstractNetwork.jl")

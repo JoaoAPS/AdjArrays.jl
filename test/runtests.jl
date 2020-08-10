@@ -8,7 +8,7 @@ function tests()
 	    @test !isdirected(net)
 	    @test connectivity(net, 1) == 0
 		@test connectivities(net) == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-	    @test meanconnectivity(net) == 0
+	    @test connectivity(net) == 0
 	    @test adjMat(net) == zeros(10, 10)
 	    @test adjVet(net) == []
 	end
@@ -21,7 +21,7 @@ function tests()
 		@test !isdirected(net)
 		@test connectivity(net, 1) == 9
 		@test connectivities(net) == [9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
-		@test meanconnectivity(net) == 9
+		@test connectivity(net) == 9
 		
 		# Undirected
 		net = GlobalNetwork(10, directed=true)
@@ -46,7 +46,7 @@ function tests()
 	    @test !isdirected(net)
 	    @test connectivity(net, 1) == 4
 		@test connectivities(net) == [4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
-	    @test meanconnectivity(net) == 4
+	    @test connectivity(net) == 4
 		
 		# Directed
 		net = RegularNetwork(10, 4, directed=true)
@@ -72,19 +72,19 @@ function tests()
 	    
 		# Argument manip
 		net = RegularNetwork(10, 5)
-		@test meanconnectivity(net) == 4
+		@test connectivity(net) == 4
 		@test numconnections(net) == 4 * 10 / 2
 	    @test adjMat(net)  == adjMat(RegularNetwork(10, 4))
 		net = RegularNetwork(10, -5)
-		@test meanconnectivity(net) == 0
+		@test connectivity(net) == 0
 		@test numconnections(net) == 0
 	    @test adjMat(net) == adjMat(EmptyNetwork(10))
 	    net = RegularNetwork(10, 20)
-		@test meanconnectivity(net) == 9
+		@test connectivity(net) == 9
 		@test adjMat(net) == adjMat(GlobalNetwork(10))
 		@test numconnections(net) == sum(adjMat(net)) / 2
 		net = RegularNetwork(11, 20)
-		@test meanconnectivity(net) == 10
+		@test connectivity(net) == 10
 		@test adjMat(net) == adjMat(GlobalNetwork(11))
 		@test numconnections(net) == sum(adjMat(net)) / 2
 	end
@@ -156,7 +156,7 @@ function tests()
 	    # Undirected Network
 		net = WattsStrogatzNetwork(500, 10, 0.2, seed=1234)
 		@test numnodes(net) == 500
-		@test meanconnectivity(net) == 10
+		@test connectivity(net) == 10
 		@test net.β == 0.2
 		@test numconnections(net) == 10 * 500 / 2
 		@test numshortcuts(net) ≈ (net.β * numconnections(net)) rtol=0.1
@@ -181,14 +181,14 @@ function tests()
 		
 		# Argument manip
 		net = WattsStrogatzNetwork(10, -1, 0.2)
-		@test meanconnectivity(net) == 0
+		@test connectivity(net) == 0
 		@test numconnections(net) == 0
 		@test numshortcuts(net) == 0
 		@test isnothing(net.β)
 		@test adjMat(net) == adjMat(EmptyNetwork(10))
 
 		net = WattsStrogatzNetwork(10, 11, 0.2)
-		@test meanconnectivity(net) == 9
+		@test connectivity(net) == 9
 		@test numconnections(net) == 90 / 2
 		@test numshortcuts(net) == 0
 		@test isnothing(net.β)
@@ -208,7 +208,7 @@ function tests()
 	    # Undirected Network
 		net = WattsStrogatzNetwork(500, 10, 100, seed=1234)
 		@test numnodes(net) == 500
-		@test meanconnectivity(net) == 10
+		@test connectivity(net) == 10
 		@test isnothing(net.β)
 		@test numconnections(net) == 10 * 500 / 2
 		@test numshortcuts(net) == 100
@@ -233,14 +233,14 @@ function tests()
 		
 		# Argument manip
 		net = WattsStrogatzNetwork(10, -1, 5)
-		@test meanconnectivity(net) == 0
+		@test connectivity(net) == 0
 		@test numconnections(net) == 0
 		@test numshortcuts(net) == 0
 		@test isnothing(net.β)
 		@test adjMat(net) == adjMat(EmptyNetwork(10))
 
 		net = WattsStrogatzNetwork(10, 11, 5)
-		@test meanconnectivity(net) == 9
+		@test connectivity(net) == 9
 		@test numconnections(net) == 90 / 2
 		@test numshortcuts(net) == 0
 		@test isnothing(net.β)

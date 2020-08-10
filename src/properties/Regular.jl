@@ -1,4 +1,4 @@
-meanconnectivity(network::RegularNetwork) = network.k
+connectivity(network::RegularNetwork) = network.k
 
 
 # ---------- Calculators ----------

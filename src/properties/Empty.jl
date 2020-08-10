@@ -1,6 +1,6 @@
 numconnections(network::EmptyNetwork) = 0
 isdirected(network::EmptyNetwork) = false
-meanconnectivity(network::EmptyNetwork) = 0
+connectivity(network::EmptyNetwork) = 0
 shortestpath(network::EmptyNetwork) = 0
 
 adjVet(network::EmptyNetwork) = Int[]

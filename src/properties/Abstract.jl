@@ -35,12 +35,6 @@ isdirected(network::AbstractNetwork) = network._props.directed
 	connectivity(network::AbstractNetwork, idx_node::Integer; degree::Symbol=:total)
 
 Return the connectivity of the specified node.
-If the network is directed, the `degree` parameter controls which connectivity is returned,
-`:in` for in-degree, `out` for out-degree, `:total` for the sum of in- and out-degree,
-`:mean` for the mean of in- and out-degree, `:both` for both in- and out-degree, and
-`:bi` for the number of neighbors for which both in and out connections are present.
-
-See also: `connectivities`, `meanconnectivity`
 """
 function connectivity(
 		network::AbstractNetwork,
@@ -69,13 +63,13 @@ If the network is directed, the `degree` parameter controls which connectivity i
 `:mean` for the mean of in- and out-degree, `:both` for both in- and out-degree, and
 `:bi` for the number of neighbors for which both in and out connections are present.
 
-See also: `connectivity`, `meanconnectivity`
+See also: `connectivity`
 """
 connectivities(network::AbstractNetwork; degree::Symbol=:total) = 
 	[connectivity(network, i; degree) for i in 1:network.N]
 
 """
-	meanconnectivity(network::AbstractNetwork)
+	connectivity(network::AbstractNetwork)
 
 Return the mean connectivity of the network.
 
@@ -84,10 +78,9 @@ If the network is directed, the `degree` parameter controls which connectivity i
 `:mean` for the mean of in- and out-degree, `:both` for both in- and out-degree, and
 `:bi` for the number of neighbors for which both in and out connections are present.
 
-
-See also: `connectivity`, `connectivities`
+See also: `connectivities`
 """
-function meanconnectivity(network::AbstractNetwork; degree::Symbol=:total)
+function connectivity(network::AbstractNetwork; degree::Symbol=:total)
 	isnothing(network._props.meanConnectivity) && calcMeanConnectivity!(network)
 	return network._props.meanConnectivity
 end

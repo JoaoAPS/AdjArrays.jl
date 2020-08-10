@@ -1,4 +1,4 @@
-meanconnectivity(network::WattsStrogatzNetwork) = network.k
+connectivity(network::WattsStrogatzNetwork) = network.k
 
 """
 	numshortcuts(network::WattsStrogatzNetwork)

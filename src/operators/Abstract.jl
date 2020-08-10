@@ -58,10 +58,10 @@ function neighbors(network::AbstractNetwork, idx_node::Integer; directed_behavio
 		(directed_behaviour in [:origin, :destination, :any]) ||
 			throw(ArgumentError("directed_behaviour must be one of: :origin, :destination, :any"))
 		
-		(directed_behaviour == :origin) && (return [i for i in 1:network.N if mat[idx_node, i]])
-		(directed_behaviour == :destination) && (return [i for i in 1:network.N if mat[i, idx_node]])
+		(directed_behaviour == :origin) && (return [i for i in 1:network.N if mat[idx_node, i] != 0])
+		(directed_behaviour == :destination) && (return [i for i in 1:network.N if mat[i, idx_node] != 0])
 		(directed_behaviour == :any) &&
-			(return [i for i in 1:network.N if mat[i, idx_node] || mat[idx_node, i]])
+			(return [i for i in 1:network.N if mat[i, idx_node] != 0 || mat[idx_node, i] != 0])
 	else
 		return [i for i in 1:network.N if mat[i, idx_node]]
 	end
@@ -76,8 +76,8 @@ Calculate the adjacency matrix based on the adjacency vector.
 
 See also: `adjMatToVet`
 """
-function adjVetToMat(vet::Vector{<:Integer}, N::Integer)
-	mat = BitArray(0 for i in 1:N, j in 1:N)
+function adjVetToMat(vet::Vector{<:Integer}, N::Integer; sparse::Bool=false)
+	mat = sparse ? SparseArrays.spzeros(N, N) : BitArray(0 for i in 1:N, j in 1:N)
 
 	let i = 0
 		for idx in vet

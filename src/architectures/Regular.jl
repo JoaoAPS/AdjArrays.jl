@@ -27,7 +27,7 @@ function RegularNetwork(N::Integer, k::Integer; directed::Bool=false)
 	(k < 0) && (k = 0)
 	(k >= N-1) && (k = N-1)
 	
-	RegularNetwork(N, k, nothing, NetworkProperties(directed))
+	RegularNetwork(N, k, nothing, NetworkProperties(N, directed))
 end
 
 

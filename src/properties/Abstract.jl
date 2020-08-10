@@ -130,6 +130,11 @@ function clusteringcoefficients(network::AbstractNetwork)
 	return network._props.clusteringCoefficients
 end
 
+"""
+	transitivity(network::AbstractNetwork)
+
+Return the transitivity of the network.
+"""
 function transitivity(network::AbstractNetwork)
 	if isdirected(network)
 		println("Transitivity not supported for directed networks")
@@ -139,6 +144,54 @@ function transitivity(network::AbstractNetwork)
 	isnothing(network._props.transitivity) && calcTransitivity!(network)
 	return network._props.transitivity
 end
+
+
+"""
+	shortestpath(network::AbstractNetwork, source::Integer,	target::Integer=nothing)
+
+Return the length of the shortest paths from the source node the every other node.
+If `target` is specified, only the path from the source to the target is returned.
+"""
+function shortestpath(
+	network::AbstractNetwork,
+	source::Integer,
+	target::Union{Integer, Nothing}=nothing
+)
+	hasnodeOrError(network, source)
+	isnothing(target) || hasnodeOrError(network, target)
+	
+	isnothing(network._props.shortestPaths[source]) && calcShortestPath!(network, source)
+	return isnothing(target) ?
+		network._props.shortestPaths[source] :
+		network._props.shortestPaths[source][target]
+end
+
+"""
+	shortestpath(network::AbstractNetwork)
+
+Return the average shortest path length of the network.
+"""
+function shortestpath(network::AbstractNetwork)
+	totalLength = 0
+	
+	for i in 1:network.N
+		pathLenghts = shortestpath(network, i)
+		for j in 1:network.N
+			((i == j) || isinf(pathLenghts[j])) && continue
+			totalLength += pathLenghts[j]
+		end
+	end
+	
+	return totalLength / (network.N * (network.N - 1))
+end
+
+"""
+	averagepathlength(network::AbstractNetwork)
+
+Return the average shortest path length of the network.
+"""
+averagepathlength(network::AbstractNetwork) = shortestpath(network)
+
 
 """
 	adjMat(network::AbstractNetwork, sparse::Bool=false)
@@ -186,7 +239,8 @@ function calcConnectivity(network::AbstractNetwork, idx_node::Integer; degree::S
 	(degree == :out)   && (return outDegree)
 	(degree == :mean)  && (return (inDegree + outDegree) / 2)
 	(degree == :both)  && (return (inDegree, outDegree))
-	(degree == :bi)    && (return sum(mat[idx_node, :] .& mat[:, idx_node]))
+	(degree == :bi)    &&
+		(return sum(Bool.(mat[idx_node, :]) .& Bool.(mat[:, idx_node])))
 end
 
 calcMeanConnectivity!(network::AbstractNetwork) =
@@ -258,4 +312,41 @@ function calcTransitivity!(network::AbstractNetwork)
 	
 	network._props.transitivity =
 		numExistingTriangles == 0 ? 0 : numExistingTriangles / numPossibleTriangles	
+end
+
+function calcShortestPath!(
+	network::AbstractNetwork,
+	source::Integer,
+	target::Union{Integer,Nothing}=nothing
+)
+	hasnodeOrError(network, source)
+	isnothing(target) || hasnodeOrError(network, target)
+		
+	network._props.shortestPaths[source] = dijkstra(network, source, target)
+end
+
+function dijkstra(
+	network::AbstractNetwork,
+	source::Integer,
+	target::Union{Integer,Nothing}=nothing
+)
+	unvisited = Vector(1:network.N)
+	distance = repeat([Inf], network.N)
+	distance[source] = 0
+	
+	while !isempty(unvisited) && !all(x -> isinf(x), unvisited)
+		currentNode = unvisited[ findmin(distance[unvisited])[2] ]
+		unvisited = filter(x -> x != currentNode, unvisited)
+		
+		if !isnothing(target) && currentNode == target
+			return distance[currentNode]
+		end
+		
+		for nb in neighbors(network, currentNode, directed_behaviour=:destination)
+			testVal = distance[currentNode] + 1
+			(testVal < distance[nb]) && (distance[nb] = testVal)
+		end
+	end
+	
+	return distance
 end

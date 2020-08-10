@@ -18,7 +18,7 @@ Create a global network with `N` nodes
 """
 function GlobalNetwork(N::Integer; directed::Bool=false)
 	(N <= 0) && throw(ArgumentError("Number of nodes must be a positive integer!"))
-	GlobalNetwork(N, NetworkProperties(directed))
+	GlobalNetwork(N, NetworkProperties(N, directed))
 end
 
 

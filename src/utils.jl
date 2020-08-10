@@ -9,3 +9,10 @@ function mean(vet::AbstractVector)
 	return sum(vet) / length(vet)
 end
 
+function issymmetric(mat::AbstractMatrix)
+	(size(mat, 1) != size(mat, 2)) && (return false)
+	for i in 1:size(mat, 1), j in i+1:size(mat, 2)
+		(mat[i,j] != mat[j,i]) && (return false)
+	end
+	return true
+end

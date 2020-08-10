@@ -57,7 +57,7 @@ function WattsStrogatzNetwork(
 	_seed = seed < 0 ? rand(1:999999999) : seed
 	isnothing(mat) && ((mat, numShortcuts) = generateWSAdjMat(N, k, β; directed, seed=_seed))
 	
-	WattsStrogatzNetwork(N, k, β,_seed, mat, NetworkProperties(directed), numShortcuts)
+	WattsStrogatzNetwork(N, k, β,_seed, mat, NetworkProperties(N, directed), numShortcuts)
 end
 
 """
@@ -97,7 +97,7 @@ function WattsStrogatzNetwork(
 	_seed = seed < 0 ? rand(1:999999999) : seed
 	isnothing(mat) && (mat = generateWSAdjMat(N, k, numShortcuts; directed, seed=_seed))
 	
-	WattsStrogatzNetwork(N, k, nothing, _seed, mat, NetworkProperties(directed), numShortcuts)
+	WattsStrogatzNetwork(N, k, nothing, _seed, mat, NetworkProperties(N, directed), numShortcuts)
 end
 
 

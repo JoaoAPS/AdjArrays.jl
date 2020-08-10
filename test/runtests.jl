@@ -98,7 +98,7 @@ function tests()
 		@test !isdirected(net)
 		@test net.seed == 1234
 		
-		@test issymmetric(adjMat(net))
+		@test AdjacencyArrays.issymmetric(adjMat(net))
 		@test sum(adjMat(net)) == 2 * numconnections(net)
 		@test length(adjVet(net)) == 2 * numconnections(net)
 		
@@ -129,7 +129,7 @@ function tests()
 		@test !isdirected(net)
 		@test net.seed == 1234
 		
-		@test issymmetric(adjMat(net))
+		@test AdjacencyArrays.issymmetric(adjMat(net))
 		@test sum(adjMat(net)) == 2 * numconnections(net)
 		@test length(adjVet(net)) == 2 * numconnections(net)
 		
@@ -163,7 +163,7 @@ function tests()
 		@test !isdirected(net)
 		@test net.seed == 1234
 		
-		@test issymmetric(adjMat(net))
+		@test AdjacencyArrays.issymmetric(adjMat(net))
 		@test sum(adjMat(net)) == 2 * numconnections(net)
 		@test length(adjVet(net)) == 2 * numconnections(net)
 		
@@ -215,7 +215,7 @@ function tests()
 		@test !isdirected(net)
 		@test net.seed == 1234
 		
-		@test issymmetric(adjMat(net))
+		@test AdjacencyArrays.issymmetric(adjMat(net))
 		@test sum(adjMat(net)) == 2 * numconnections(net)
 		@test length(adjVet(net)) == 2 * numconnections(net)
 		
@@ -252,6 +252,29 @@ function tests()
 
 		net = WattsStrogatzNetwork(10, 2, 40)
 		@test numshortcuts(net) == numconnections(net)
+	end
+	
+	@testset "Custom Networks" begin
+		mat = [
+			0 1 1 0;
+			0 0 1 1;
+			1 0 0 1;
+			1 1 0 0
+		]
+		
+	    @test adjMat(CustomNetwork(mat)) == mat
+	    @test adjMat(CustomNetwork(adjMatToVet(mat), size(mat, 1))) == mat
+	    @test adjMat(CustomNetwork(Float64.(mat))) == mat
+	    @test adjMat(CustomNetwork(Bool.(mat))) == mat
+	    @test adjMat(CustomNetwork(sparse(mat))) == mat
+	    
+	    @test isdirected(CustomNetwork(mat))
+	    @test !isdirected(CustomNetwork([0 1 0; 1 0 1; 0 1 0]))
+	    
+	    @test_throws ArgumentError CustomNetwork([0 1 1; 1 0 1])
+	    @test_throws ArgumentError CustomNetwork([0 2 1; 1 0 1; 3 2 0])
+	    @test_throws ArgumentError CustomNetwork([0 0.5 1; 0.5 0 1; 0.75 0.2 0])
+	    @test_throws ArgumentError CustomNetwork(mat, directed=false)
 	end
 	
 	
@@ -328,6 +351,27 @@ function tests()
 	    @test clusteringcoefficient(net, 1) == 0.5
 	    @test clusteringcoefficient(net) == 0.5
 	    @test clusteringcoefficients(net) == repeat([0.5], 20)
+	    
+	    # Shortest path length
+	    @test shortestpath(GlobalNetwork(8), 1) == [0, 1, 1, 1, 1, 1, 1, 1]
+	    @test shortestpath(GlobalNetwork(8)) == 1
+	    @test shortestpath(RegularNetwork(8, 2), 1) == [0, 1, 2, 3, 4, 3, 2, 1]
+	    @test shortestpath(RegularNetwork(8, 2), 1, 4) == 3
+	    @test shortestpath(RegularNetwork(8, 2)) == 16 / 7
+	    
+	    net = CustomNetwork([
+	    	0 0 0 0 0;
+	    	1 0 1 0 1;
+	    	1 0 0 1 0;
+	    	0 1 0 0 1;
+	    	0 0 0 0 0
+	    ])
+	    @test shortestpath(net, 1) == [0, 1, 1, 2, Inf]
+	    @test shortestpath(net, 1, 4) == 2
+	    @test shortestpath(net) == 17 / (5 * 4)
+	    @test averagepathlength(net) == shortestpath(net)
+	    
+	    @test shortestpath(EmptyNetwork(10)) == 0
 	end
 	
 	@testset "Operators" begin
@@ -402,14 +446,6 @@ function tests()
 		@test_throws ArgumentError adjMatToVet([1 0; 3 2])
 		@test_throws AssertionError adjMatToVet([1 0 1; 0 0 1])
 	end
-end
-
-function issymmetric(mat::AbstractMatrix)
-	(size(mat, 1) != size(mat, 2)) && (return false)
-	for i in 1:size(mat, 1), j in i+1:size(mat, 2)
-		(mat[i,j] != mat[j,i]) && (return false)
-	end
-	return true
 end
 	
 tests()

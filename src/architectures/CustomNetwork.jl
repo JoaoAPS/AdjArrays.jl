@@ -62,6 +62,6 @@ end
 
 function show(network::CustomNetwork)
 	print(isdirected(network) ? "Directed " : "Undirected ")
-	println("Global Network")
+	println("Custom Network")
 	println("- N = $(network.N)")
 end

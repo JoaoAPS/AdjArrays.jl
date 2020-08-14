@@ -18,25 +18,30 @@ hasconnection(network::AbstractNetwork, idx_origin::Integer, idx_dest::Integer) 
 	allEdges(adjacencyMatrix::AbstractMatrix, directed::Bool; first_index::Integer=1)
 
 Return an array with all existing connections as a tuple (origin,destination).
+
+# Arguments
+- idx_origin: Which of 0 or 1 should be used as the first index.
+- both_directions: (undirected only) if true will return both directions of an undirected
+connections. i.e.: i -> j and j -> i.
 """
-function allEdges(mat::AbstractMatrix, directed::Bool; first_index::Integer=1)
+function allEdges(mat::AbstractMatrix, directed::Bool; first_index::Integer=1, both_directions::Bool=false)
 	(first_index in [1,0]) || throw(ArgumentError("first_index must be 0 or 1"))
 	@assert size(mat, 1) == size(mat, 2)
 	
 	N = size(mat, 1)
 	
-	if directed
-		edges = [(i,j) for i in 1:N for j in 1:N if mat[j,i]]
+	if directed || both_directions
+		edges = [(i,j) for i in 1:N for j in 1:N if mat[j,i] != 0]
 	else
-		edges = [(i,j) for i in 1:N for j in i+1:N if mat[j,i]]
+		edges = [(i,j) for i in 1:N for j in i+1:N if mat[j,i] != 0]
 	end
 	
 	(first_index == 0) && (edges = [(e[1]-1, e[2]-1) for e in edges])
 	return edges
 end
 
-allEdges(network::AbstractNetwork; first_index::Integer=1) =
-	allEdges(adjMat(network, sparse=true), isdirected(network); first_index)
+allEdges(network::AbstractNetwork; first_index::Integer=1, both_directions::Bool=false) =
+	allEdges(adjMat(network, sparse=true), isdirected(network); first_index, both_directions)
 
 
 """
@@ -63,7 +68,7 @@ function neighbors(network::AbstractNetwork, idx_node::Integer; directed_behavio
 		(directed_behaviour == :any) &&
 			(return [i for i in 1:network.N if mat[i, idx_node] != 0 || mat[idx_node, i] != 0])
 	else
-		return [i for i in 1:network.N if mat[i, idx_node]]
+		return [i for i in 1:network.N if mat[i, idx_node] != 0]
 	end
 end
 		
@@ -150,13 +155,127 @@ function adjMatToVet(mat::AbstractArray{<:Real,2})
 end
 
 
+"""
+	equivalentRandomNetwork(network::AbstractNetwork; seed, numReshuffle, maxTentatives)
 
+Return a random network with the same degree distribution of the original.
 
+# Keyworkd Arguments
+- seed (Integer, default=-1): Seed for random creation
+- numReshuffle (Integer, default=10): Number of reshuffling cycles.
+Each cycle makes `numconnections(network)` rewires.
+- maxTentatives (Integer, default=numconnections(network) * numReshuffle * 300) :
+Maximum number of rewiring tentatives before ending the algorithm.
+"""
+function equivalentRandomNetwork(
+	network::AbstractNetwork;
+	seed::Integer = -1,
+	numReshuffle::Integer = 10,
+	maxTentatives::Integer = (numconnections(network) * numReshuffle * 300)
+)
+	(seed < 0) && (seed = rand(1:99999999))
+	rng = Random.MersenneTwister(seed)
+	numShuffle = numReshuffle * numconnections(network)
+	
+	edges = allEdges(network, both_directions=true)
+	mat = adjMat(network, sparse=true)
+	
+	numRewires = 0
+	numTentatives = 0
+	
+	while numRewires < numShuffle && numTentatives < maxTentatives
+		numTentatives += 1
+		
+		# Choose random pair of edges
+		edge1 = rand(rng, edges)
+		edge2 = rand(rng, edges)
+		while edge1 == edge2 || edge1[1] == edge2[2] || edge2[1] == edge1[2]
+			edge2 = rand(rng, edges)
+		end
+		
+		# Check if the rewiring is valid
+		((edge1[1], edge2[2]) in edges) && continue
+		((edge2[1], edge1[2]) in edges) && continue
+		
+		# Rewire
+		mat[edge1[2], edge1[1]] = 0
+		mat[edge2[2], edge2[1]] = 0
+		mat[edge1[2], edge2[1]] = 1
+		mat[edge2[2], edge1[1]] = 1
+		
+		edges = filter(x -> x != edge1 && x != edge2, edges)
+		edges = vcat(edges, [(edge1[1], edge2[2]), (edge2[1], edge1[2])])
+		
+		numRewires += 1
+	end
+	
+	return CustomNetwork(SparseArrays.dropzeros(mat), directed=true)
+end
 
+"""
+	equivalentLatticeNetwork(network::AbstractNetwork; seed, numReshuffle, maxTentatives)
 
+Return a network with the same degree distribution of the original but with higher 
+clustering coefficient and connections closer to the diagonal.
 
-#------------- Utils -----------------
-function hasnodeOrError(network::AbstractNetwork, idx_node::Integer)
-	hasnode(network, idx_node) ||
-		throw(ArgumentError("Invalid node index! Node $idx_node doesn't exist in the network!"))
+# Keyworkd Arguments
+- seed (Integer, default=-1): Seed for random creation
+- numReshuffle (Integer, default=10): Number of reshuffling cycles.
+Each cycle makes `numconnections(network)` rewires.
+- maxTentatives (Integer, default=numconnections(network) * numReshuffle * 300) :
+Maximum number of rewiring tentatives before ending the algorithm.
+"""
+function equivalentLatticeNetwork(
+	network::AbstractNetwork;
+	seed::Integer = -1,
+	numReshuffle::Integer = 10,
+	maxTentatives::Integer = (numconnections(network) * numReshuffle * 300)
+)
+	(seed < 0) && (seed = rand(1:99999999))
+	rng = Random.MersenneTwister(seed)
+	numShuffle = numReshuffle * numconnections(network)
+	
+	edges = allEdges(network, both_directions=true)
+	mat = adjMat(network, sparse=true)
+	newnet = CustomNetwork(mat)
+	
+	numRewires = 0
+	numTentatives = 0
+	
+	while clusteringcoefficient(newnet) <= clusteringcoefficient(network)
+		while numRewires < numShuffle && numTentatives < maxTentatives
+			numTentatives += 1
+			
+			# Choose random pair of edges
+			edge1 = rand(rng, edges)
+			edge2 = rand(rng, edges)
+			while edge1 == edge2 || edge1[1] == edge2[2] || edge2[1] == edge1[2]
+				edge2 = rand(rng, edges)
+			end
+			
+			# Check if the rewiring is valid
+			((edge1[1], edge2[2]) in edges) && continue
+			((edge2[1], edge1[2]) in edges) && continue
+			
+			# Check if the new matrix will be closer to diagonal
+			dist_old = (edge1[1] - edge1[2])^2 + (edge2[1] - edge2[2])^2
+			dist_new = (edge1[1] - edge2[2])^2 + (edge2[1] - edge1[2])^2
+			(dist_new >= dist_old) && continue
+			
+			# Rewire
+			mat[edge1[2], edge1[1]] = 0
+			mat[edge2[2], edge2[1]] = 0
+			mat[edge1[2], edge2[1]] = 1
+			mat[edge2[2], edge1[1]] = 1
+			
+			edges = filter(x -> x != edge1 && x != edge2, edges)
+			edges = vcat(edges, [(edge1[1], edge2[2]), (edge2[1], edge1[2])])
+			
+			numRewires += 1
+			
+			newnet = CustomNetwork(SparseArrays.dropzeros(mat), directed=true)
+		end
+	end
+	
+	return newnet
 end

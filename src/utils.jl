@@ -16,3 +16,8 @@ function issymmetric(mat::AbstractMatrix)
 	end
 	return true
 end
+
+function hasnodeOrError(network::AbstractNetwork, idx_node::Integer)
+	hasnode(network, idx_node) ||
+		throw(ArgumentError("Invalid node index! Node $idx_node doesn't exist in the network!"))
+end

@@ -1,4 +1,29 @@
 """
+	adjMat(network::AbstractNetwork, sparse::Bool=false)
+
+Return the adjacency matrix of the network.
+If `sparse` is true, return a sparse version of the matrix.
+
+See also: `adjVet`
+"""
+function adjMat(network::AbstractNetwork; sparse::Bool=false)
+	isnothing(network._adjMat) && calcAdjMat!(network)
+	return sparse ? copy(network._adjMat) : BitArray(network._adjMat)
+end
+
+"""
+	adjVet(network::AbstractNetwork)
+
+Return the adjacency vector of the network
+
+See also: `adjMat`
+"""
+function adjVet(network::AbstractNetwork)
+	isnothing(network._adjMat) && calcAdjMat!(network)
+	return adjMatToVet(network._adjMat)
+end
+
+"""
 	numnodes(network::AbstractNetwork)
 
 Return the number of nodes on the network.
@@ -185,31 +210,85 @@ Return the average shortest path length of the network.
 """
 averagepathlength(network::AbstractNetwork) = shortestpath(network)
 
-
 """
-	adjMat(network::AbstractNetwork, sparse::Bool=false)
+	sigma(network::AbstractNetwork)
 
-Return the adjacency matrix of the network.
-If `sparse` is true, return a sparse version of the matrix.
+Compare the network with a equivalent random network and return
+the small-world-ness measure ``σ = (C / C_ran) / (L / L_ran)``
 
-See also: `adjVet`
+See also: `omega`, `smallworldness`
 """
-function adjMat(network::AbstractNetwork; sparse::Bool=false)
-	isnothing(network._adjMat) && calcAdjMat!(network)
-	return sparse ? network._adjMat : BitArray(network._adjMat)
+function sigma(network::AbstractNetwork)
+	isnothing(network._props.σ) && smallworldness(network, verbose=false)
+	return network._props.σ
 end
 
 """
-	adjVet(network::AbstractNetwork)
+	omega(network::AbstractNetwork)
 
-Return the adjacency vector of the network
+Compare the network with a equivalent random network and return
+the small-world-ness measure ``ω = (L_ran / L) - (C / C_reg)``
 
-See also: `adjMat`
+See also: `sigma`, `smallworldness`
 """
-function adjVet(network::AbstractNetwork)
-	isnothing(network._adjMat) && calcAdjMat!(network)
-	return adjMatToVet(network._adjMat)
+function omega(network::AbstractNetwork)
+	isnothing(network._props.ω) && smallworldness(network, verbose=false)
+	return network._props.ω
 end
+
+
+"""
+	smallworldness(network::AbstractNetwork; verbose::Bool=true)
+
+Return the small-world-ness measures σ and ω.
+If `verbose` is true, also print an analysis.
+
+See also: `sigma`, `omega`
+"""
+function smallworldness(network::AbstractNetwork; verbose::Bool=true)
+	equivRan = equivalentRandomNetwork(network)
+	equivLat = equivalentLatticeNetwork(network)
+	
+	net_cc     = clusteringcoefficient(network)
+	random_cc  = clusteringcoefficient(equivRan)
+	lattice_cc = clusteringcoefficient(equivLat)
+	
+	net_apl    = averagepathlength(network)
+	random_apl = averagepathlength(equivRan)
+	verbose && (lattice_apl = averagepathlength(equivLat))
+	
+	network._props.σ = (net_cc / random_cc) / (net_apl / random_apl)
+	network._props.ω = random_apl / net_apl - net_cc / lattice_cc
+	
+	if verbose
+		println("Small-world-ness analysis")
+		println("-------------------------")
+		println("Clutering Coefficient:")
+		println("- Analysed network:           $(net_cc)")
+		println("- Equivalent random network:  $(random_cc)")
+		println("- Equivalent lattice network: $(lattice_cc)")
+		println("")
+		println("Average Path Length")
+		println("- Analysed network:           $(net_apl)")
+		println("- Equivalent random network:  $(random_apl)")
+		println("- Equivalent lattice network: $(lattice_apl)")
+		println("")
+		println("σ = $(network._props.σ)")
+		println("ω = $(network._props.ω)")
+		println("")
+		println("References")
+		println("σ > 1  =>  Small-world")
+		println("ω -> -1  => Regular / Lattice")
+		println("ω ->  0  => Small-world")
+		println("ω ->  1  => Random")
+	end
+	
+	return network._props.σ, network._props.ω
+end
+
+
+
+
 
 
 
@@ -233,7 +312,7 @@ function calcConnectivity(network::AbstractNetwork, idx_node::Integer; degree::S
 	(degree == :mean)  && (return (inDegree + outDegree) / 2)
 	(degree == :both)  && (return (inDegree, outDegree))
 	(degree == :bi)    &&
-		(return sum(Bool.(mat[idx_node, :]) .& Bool.(mat[:, idx_node])))
+		(return sum(BitArray(mat[idx_node, :] .& mat[:, idx_node])))
 end
 
 calcMeanConnectivity!(network::AbstractNetwork) =

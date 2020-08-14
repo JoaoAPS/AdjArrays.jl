@@ -6,6 +6,9 @@ mutable struct NetworkProperties
 	clusteringCoefficients :: Union{Vector{<:Real}, Nothing}
 	transitivity :: Union{Real, Nothing}
 	shortestPaths :: Vector{Union{Vector{<:Real}, Nothing}}
+	
+	σ :: Union{Float64, Nothing}
+	ω :: Union{Float64, Nothing}
 end
 
 NetworkProperties(N::Integer, directed::Bool) = NetworkProperties(
@@ -14,7 +17,9 @@ NetworkProperties(N::Integer, directed::Bool) = NetworkProperties(
 	nothing,
 	nothing,
 	nothing,
-	repeat([nothing], N)
+	repeat([nothing], N),
+	nothing,
+	nothing,
 )
 
 NetworkProperties(N::Integer, directed::Bool, numConnections::Integer) = NetworkProperties(
@@ -23,5 +28,7 @@ NetworkProperties(N::Integer, directed::Bool, numConnections::Integer) = Network
 	nothing,
 	nothing,
 	nothing,
-	repeat([nothing], N)
+	repeat([nothing], N),
+	nothing,
+	nothing,
 )

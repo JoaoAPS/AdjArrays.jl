@@ -41,7 +41,7 @@ function allEdges(mat::AbstractMatrix, directed::Bool; first_index::Integer=1, b
 end
 
 allEdges(network::AbstractNetwork; first_index::Integer=1, both_directions::Bool=false) =
-	allEdges(adjMat(network, sparse=true), isdirected(network); first_index, both_directions)
+	allEdges(adjMat(network, sparse=true), isdirected(network); first_index=first_index, both_directions=both_directions)
 
 
 """

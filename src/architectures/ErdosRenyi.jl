@@ -33,7 +33,7 @@ function ErdosRenyiNetwork(
 	(p < 0) && (p = 0.0)
 	
 	_seed = seed < 0 ? rand(1:999999999) : seed
-	mat = generateERAdjMat(N, p; directed, seed=_seed)
+	mat = generateERAdjMat(N, p; directed=directed, seed=_seed)
 	
 	ErdosRenyiNetwork(N, p, _seed, mat, NetworkProperties(N, directed))
 end
@@ -56,7 +56,7 @@ function ErdosRenyiNetwork(
 	(numConnections < 0) && (numConnections = 0)
 	
 	_seed = seed < 0 ? rand(1:999999999) : seed
-	mat = generateERAdjMat(N, numConnections; directed, seed=_seed)
+	mat = generateERAdjMat(N, numConnections; directed=directed, seed=_seed)
 
 	ErdosRenyiNetwork(N, nothing, _seed, mat, NetworkProperties(N, directed, numConnections))
 end

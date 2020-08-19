@@ -75,7 +75,7 @@ function connectivity(
 		))
 	end
 	
-	return calcConnectivity(network, idx_node; degree)
+	return calcConnectivity(network, idx_node; degree=degree)
 end
 
 """
@@ -91,7 +91,7 @@ If the network is directed, the `degree` parameter controls which connectivity i
 See also: `connectivity`
 """
 connectivities(network::AbstractNetwork; degree::Symbol=:total) = 
-	[connectivity(network, i; degree) for i in 1:network.N]
+	[connectivity(network, i; degree=degree) for i in 1:network.N]
 
 """
 	connectivity(network::AbstractNetwork)

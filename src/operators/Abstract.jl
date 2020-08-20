@@ -242,40 +242,38 @@ function equivalentLatticeNetwork(
 	numRewires = 0
 	numTentatives = 0
 	
-	while clusteringcoefficient(newnet) <= clusteringcoefficient(network)
-		while numRewires < numShuffle && numTentatives < maxTentatives
-			numTentatives += 1
-			
-			# Choose random pair of edges
-			edge1 = rand(rng, edges)
+	while numRewires < numShuffle && numTentatives < maxTentatives
+		numTentatives += 1
+		
+		# Choose random pair of edges
+		edge1 = rand(rng, edges)
+		edge2 = rand(rng, edges)
+		while edge1 == edge2 || edge1[1] == edge2[2] || edge2[1] == edge1[2]
 			edge2 = rand(rng, edges)
-			while edge1 == edge2 || edge1[1] == edge2[2] || edge2[1] == edge1[2]
-				edge2 = rand(rng, edges)
-			end
-			
-			# Check if the rewiring is valid
-			((edge1[1], edge2[2]) in edges) && continue
-			((edge2[1], edge1[2]) in edges) && continue
-			
-			# Check if the new matrix will be closer to diagonal
-			dist_old = (edge1[1] - edge1[2])^2 + (edge2[1] - edge2[2])^2
-			dist_new = (edge1[1] - edge2[2])^2 + (edge2[1] - edge1[2])^2
-			(dist_new >= dist_old) && continue
-			
-			# Rewire
-			mat[edge1[2], edge1[1]] = 0
-			mat[edge2[2], edge2[1]] = 0
-			mat[edge1[2], edge2[1]] = 1
-			mat[edge2[2], edge1[1]] = 1
-			
-			edges = filter(x -> x != edge1 && x != edge2, edges)
-			edges = vcat(edges, [(edge1[1], edge2[2]), (edge2[1], edge1[2])])
-			
-			numRewires += 1
-			
-			newnet = CustomNetwork(SparseArrays.dropzeros(mat), directed=true)
 		end
+		
+		# Check if the rewiring is valid
+		((edge1[1], edge2[2]) in edges) && continue
+		((edge2[1], edge1[2]) in edges) && continue
+		
+		# Check if the new matrix will be closer to diagonal
+		dist_old = (edge1[1] - edge1[2])^2 + (edge2[1] - edge2[2])^2
+		dist_new = (edge1[1] - edge2[2])^2 + (edge2[1] - edge1[2])^2
+		(dist_new >= dist_old) && continue
+		
+		# Rewire
+		mat[edge1[2], edge1[1]] = 0
+		mat[edge2[2], edge2[1]] = 0
+		mat[edge1[2], edge2[1]] = 1
+		mat[edge2[2], edge1[1]] = 1
+		
+		edges = filter(x -> x != edge1 && x != edge2, edges)
+		edges = vcat(edges, [(edge1[1], edge2[2]), (edge2[1], edge1[2])])
+		
+		numRewires += 1
 	end
+		
+	newnet = CustomNetwork(SparseArrays.dropzeros(mat), directed=true)
 	
-	return newnet
+	return clusteringCoefficient(newnet) > clusteringCoefficient(network) ? network : newnet
 end

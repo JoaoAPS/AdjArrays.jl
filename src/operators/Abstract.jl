@@ -275,5 +275,5 @@ function equivalentLatticeNetwork(
 		
 	newnet = CustomNetwork(SparseArrays.dropzeros(mat), directed=true)
 	
-	return clusteringCoefficient(newnet) > clusteringCoefficient(network) ? network : newnet
+	return clusteringcoefficient(newnet) > clusteringcoefficient(network) ? network : newnet
 end

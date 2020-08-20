@@ -16,7 +16,7 @@ export hasnode, hasconnection
 export connectivity, connectivities, meanconnectivity
 export clusteringcoefficient, clusteringcoefficients, transitivity
 export shortestpath, averagepathlength
-export sigma, omega, smallworldness, equivalentRandomNetwork, equivalentLatticeNetork
+export sigma, omega, smallworldness, equivalentRandomNetwork, equivalentLatticeNetwork
 export adjVet, adjMat
 export adjVetToMat, adjMatToVet
 export neighbors, allEdges

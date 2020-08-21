@@ -11,7 +11,7 @@ export ErdosRenyiNetwork
 export WattsStrogatzNetwork
 export CustomNetwork
 
-export numnodes, numconnections, isdirected, numshortcuts
+export numnodes, numconnections, isdirected, numshortcuts, isregular
 export hasnode, hasconnection
 export connectivity, connectivities, meanconnectivity
 export clusteringcoefficient, clusteringcoefficients, transitivity

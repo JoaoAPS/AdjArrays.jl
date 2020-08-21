@@ -231,6 +231,13 @@ function equivalentLatticeNetwork(
 	numReshuffle::Integer = 10,
 	maxTentatives::Integer = (numconnections(network) * numReshuffle * 300)
 )
+	isregular(network) && (return network)
+	
+	function distToDiag(i::Int, j::Int)
+		dist = abs(i - j)
+		return min(dist, network.N - dist)
+	end
+	
 	(seed < 0) && (seed = rand(1:99999999))
 	rng = Random.MersenneTwister(seed)
 	numShuffle = numReshuffle * numconnections(network)
@@ -239,41 +246,58 @@ function equivalentLatticeNetwork(
 	mat = adjMat(network, sparse=true)
 	newnet = CustomNetwork(mat)
 	
-	numRewires = 0
-	numTentatives = 0
+	numTriedNets = 0
 	
-	while numRewires < numShuffle && numTentatives < maxTentatives
-		numTentatives += 1
+	while clusteringcoefficient(newnet) <= clusteringcoefficient(network) && numTriedNets < 10
+		numRewires = 0
+		numTentatives = 0
+		numTriedNets += 1
 		
-		# Choose random pair of edges
-		edge1 = rand(rng, edges)
-		edge2 = rand(rng, edges)
-		while edge1 == edge2 || edge1[1] == edge2[2] || edge2[1] == edge1[2]
+		while numRewires < numShuffle && numTentatives < maxTentatives
+			numTentatives += 1
+			
+			# Choose random pair of edges
+			edge1 = rand(rng, edges)
 			edge2 = rand(rng, edges)
+			while edge1 == edge2 || edge1[1] == edge2[2] || edge2[1] == edge1[2]
+				edge2 = rand(rng, edges)
+			end
+			
+			# Check if the rewiring is valid
+			((edge1[1], edge2[2]) in edges) && continue
+			((edge2[1], edge1[2]) in edges) && continue
+			
+			# Check if the new matrix will be closer to diagonal
+			dist_old = distToDiag(edge1[1], edge1[2]) + distToDiag(edge2[1], edge2[2])
+			dist_new = distToDiag(edge1[1], edge2[2]) + distToDiag(edge2[1], edge1[2])
+			(dist_new >= dist_old) && continue
+			
+			# if abs(edge1[1] - edge1[2]) > network.N/2 || abs(edge2[1] - edge2[2]) > network.N/2 
+			# 	println("-------")
+			# 	println("Rewiring ($(edge1[1]) -> $(edge1[2])) and ($(edge2[1]) -> $(edge2[2])) | dist: $dist_old")
+			# 	println("To       ($(edge1[1]) -> $(edge2[2])) and ($(edge2[1]) -> $(edge1[2])) | dist: $dist_new")
+			# else
+			# 	println(".")
+			# end
+			
+			# Rewire
+			mat[edge1[2], edge1[1]] = 0
+			mat[edge2[2], edge2[1]] = 0
+			mat[edge1[2], edge2[1]] = 1
+			mat[edge2[2], edge1[1]] = 1
+			
+			edges = filter(x -> x != edge1 && x != edge2, edges)
+			edges = vcat(edges, [(edge1[1], edge2[2]), (edge2[1], edge1[2])])
+			
+			numRewires += 1
 		end
 		
-		# Check if the rewiring is valid
-		((edge1[1], edge2[2]) in edges) && continue
-		((edge2[1], edge1[2]) in edges) && continue
+		newnet = CustomNetwork(SparseArrays.dropzeros(mat), directed=true)
 		
-		# Check if the new matrix will be closer to diagonal
-		dist_old = (edge1[1] - edge1[2])^2 + (edge2[1] - edge2[2])^2
-		dist_new = (edge1[1] - edge2[2])^2 + (edge2[1] - edge1[2])^2
-		(dist_new >= dist_old) && continue
-		
-		# Rewire
-		mat[edge1[2], edge1[1]] = 0
-		mat[edge2[2], edge2[1]] = 0
-		mat[edge1[2], edge2[1]] = 1
-		mat[edge2[2], edge1[1]] = 1
-		
-		edges = filter(x -> x != edge1 && x != edge2, edges)
-		edges = vcat(edges, [(edge1[1], edge2[2]), (edge2[1], edge1[2])])
-		
-		numRewires += 1
+		println("old cc: $(clusteringcoefficient(network))")
+		println("new cc: $(clusteringcoefficient(newnet))")
+		println("")
 	end
-		
-	newnet = CustomNetwork(SparseArrays.dropzeros(mat), directed=true)
 	
-	return clusteringcoefficient(newnet) < clusteringcoefficient(network) ? network : newnet
+	return newnet
 end

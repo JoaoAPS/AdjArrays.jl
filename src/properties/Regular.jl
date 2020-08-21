@@ -1,5 +1,12 @@
 connectivity(network::RegularNetwork) = network.k
 
+function isregular(network::AbstractNetwork)
+	(typeof(network) <: RegularNetwork) && (return true)
+	
+	mat = adjMat(network)
+	k = sum(mat[:,1])
+	return mat == adjMat(RegularNetwork(network.N, k))
+end
 
 # ---------- Calculators ----------
 calcNumConnections!(network::RegularNetwork) =

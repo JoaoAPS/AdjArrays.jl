@@ -272,14 +272,6 @@ function equivalentLatticeNetwork(
 			dist_new = distToDiag(edge1[1], edge2[2]) + distToDiag(edge2[1], edge1[2])
 			(dist_new >= dist_old) && continue
 			
-			# if abs(edge1[1] - edge1[2]) > network.N/2 || abs(edge2[1] - edge2[2]) > network.N/2 
-			# 	println("-------")
-			# 	println("Rewiring ($(edge1[1]) -> $(edge1[2])) and ($(edge2[1]) -> $(edge2[2])) | dist: $dist_old")
-			# 	println("To       ($(edge1[1]) -> $(edge2[2])) and ($(edge2[1]) -> $(edge1[2])) | dist: $dist_new")
-			# else
-			# 	println(".")
-			# end
-			
 			# Rewire
 			mat[edge1[2], edge1[1]] = 0
 			mat[edge2[2], edge2[1]] = 0
@@ -293,10 +285,6 @@ function equivalentLatticeNetwork(
 		end
 		
 		newnet = CustomNetwork(SparseArrays.dropzeros(mat), directed=true)
-		
-		println("old cc: $(clusteringcoefficient(network))")
-		println("new cc: $(clusteringcoefficient(newnet))")
-		println("")
 	end
 	
 	return newnet

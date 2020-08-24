@@ -246,8 +246,8 @@ If `verbose` is true, also print an analysis.
 See also: `sigma`, `omega`
 """
 function smallworldness(network::AbstractNetwork; verbose::Bool=true)
-	equivRan = equivalentRandomNetwork(network)
-	equivLat = equivalentLatticeNetwork(network)
+	equivRan = equivalentRandomNetwork(network, seed=network.seed)
+	equivLat = equivalentLatticeNetwork(network, seed=network.seed)
 	
 	net_cc     = clusteringcoefficient(network)
 	random_cc  = clusteringcoefficient(equivRan)

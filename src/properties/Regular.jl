@@ -12,11 +12,11 @@ end
 calcNumConnections!(network::RegularNetwork) =
 	network._props.numConnections = Int(network.k * network.N / (isdirected(network) ? 1 : 2))
 
-function calcConnectivity(network::RegularNetwork; degree::Symbol)
+function calcConnectivity(network::RegularNetwork; dir_behaviour::Symbol)
 	isdirected || (return network.k)
 	
-	(degree == :total) && (return 2 * network.k)
-	(degree == :both) && (return (network.k, network.k))
+	(dir_behaviour == :total) && (return 2 * network.k)
+	(dir_behaviour == :both) && (return (network.k, network.k))
 	return network.k
 end
 

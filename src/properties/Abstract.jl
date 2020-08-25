@@ -57,44 +57,44 @@ isdirected(network::AbstractNetwork) = network._props.directed
 
 
 """
-	connectivity(network::AbstractNetwork, idx_node::Integer; degree::Symbol=:total)
+	connectivity(network::AbstractNetwork, idx_node::Integer; dir_behaviour::Symbol=:total)
 
 Return the connectivity of the specified node.
 """
 function connectivity(
 		network::AbstractNetwork,
 		idx_node::Integer;
-		degree::Union{Symbol, String}=:total
+		dir_behaviour::Union{Symbol, String}=:total
 	)
 	hasnodeOrError(network, idx_node)
 	
-	degree = Symbol(degree)
-	if isdirected(network) && ! (degree in [:total, :in, :out, :mean, :both, :bi])
+	dir_behaviour = Symbol(dir_behaviour)
+	if isdirected(network) && ! (dir_behaviour in [:total, :in, :out, :mean, :both, :bi])
 		throw(ArgumentError(
-			"degree parameter must be one of the follwing: :total, :in, :out, :mean, :both, :bi"
+			"dir_behaviour parameter must be one of the follwing: :total, :in, :out, :mean, :both, :bi"
 		))
 	end
 	
-	return calcConnectivity(network, idx_node; degree=degree)
+	return calcConnectivity(network, idx_node; dir_behaviour=dir_behaviour)
 end
 
 """
-	connectivities(network::AbstractNetwork; degree::Symbol=:total)
+	connectivities(network::AbstractNetwork; dir_behaviour::Symbol=:total)
 
 Return the connectivities of the all node of the network.
 
-If the network is directed, the `degree` parameter controls which connectivity is returned,
+If the network is directed, the `dir_behaviour` parameter controls which connectivity is returned,
 `:in` for in-degree, `out` for out-degree, `:total` for the sum of in- and out-degree,
 `:mean` for the mean of in- and out-degree, `:both` for both in- and out-degree, and
 `:bi` for the number of neighbors for which both in and out connections are present.
 
 See also: `connectivity`
 """
-connectivities(network::AbstractNetwork; degree::Symbol=:total) = 
-	[connectivity(network, i; degree=degree) for i in 1:network.N]
+connectivities(network::AbstractNetwork; dir_behaviour::Symbol=:total) = 
+	[connectivity(network, i; dir_behaviour=dir_behaviour) for i in 1:network.N]
 
 """
-	connectivity(network::AbstractNetwork)
+	connectivity(network::AbstractNetwork; dir_behaviour::Symbol=:total)
 
 Return the mean connectivity of the network.
 
@@ -105,10 +105,8 @@ If the network is directed, the `degree` parameter controls which connectivity i
 
 See also: `connectivities`
 """
-function connectivity(network::AbstractNetwork; degree::Symbol=:total)
-	isnothing(network._props.meanConnectivity) && calcMeanConnectivity!(network)
-	return network._props.meanConnectivity
-end
+connectivity(network::AbstractNetwork; dir_behaviour::Symbol=:total) = 
+	mean(connectivities(network; dir_behaviour=dir_behaviour))
 
 
 """
@@ -213,7 +211,7 @@ averagepathlength(network::AbstractNetwork) = shortestpath(network)
 """
 	sigma(network::AbstractNetwork)
 
-Compare the network with a equivalent random network and return
+Compare the network with an equivalent random network and return
 the small-world-ness measure ``σ = (C / C_ran) / (L / L_ran)``
 
 See also: `omega`, `smallworldness`
@@ -226,7 +224,7 @@ end
 """
 	omega(network::AbstractNetwork)
 
-Compare the network with a equivalent random network and return
+Compare the network with an equivalent random network and return
 the small-world-ness measure ``ω = (L_ran / L) - (C / C_reg)``
 
 See also: `sigma`, `smallworldness`
@@ -289,34 +287,27 @@ end
 
 
 
-
-
-
-
 #---------- Calculators ----------
 function calcNumConnections!(network::AbstractNetwork)
 	network._props.numConnections =
 		Int( sum(adjMat(network, sparse=true)) / (isdirected(network) ? 1 : 2) )
 end
 
-function calcConnectivity(network::AbstractNetwork, idx_node::Integer; degree::Symbol)
+function calcConnectivity(network::AbstractNetwork, idx_node::Integer; dir_behaviour::Symbol)
 	isdirected(network) || (return sum(adjMat(network, sparse=true)[:,idx_node]))
 	
 	mat = adjMat(network, sparse=true)
 	inDegree = sum(mat[idx_node,:])
 	outDegree = sum(mat[:,idx_node])
 	
-	(degree == :total) && (return inDegree + outDegree)
-	(degree == :in)    && (return inDegree)
-	(degree == :out)   && (return outDegree)
-	(degree == :mean)  && (return (inDegree + outDegree) / 2)
-	(degree == :both)  && (return (inDegree, outDegree))
-	(degree == :bi)    &&
+	(dir_behaviour == :total) && (return inDegree + outDegree)
+	(dir_behaviour == :in)    && (return inDegree)
+	(dir_behaviour == :out)   && (return outDegree)
+	(dir_behaviour == :mean)  && (return (inDegree + outDegree) / 2)
+	(dir_behaviour == :both)  && (return (inDegree, outDegree))
+	(dir_behaviour == :bi)    &&
 		(return sum(BitArray(mat[idx_node, :] .& mat[:, idx_node])))
 end
-
-calcMeanConnectivity!(network::AbstractNetwork) =
-	network._props.meanConnectivity = sum(connectivities(network)) / network.N
 
 function calcAdjMat!(network::AbstractNetwork)
 	error("No adjacency matrix calculators were found for a network of type $(typeof(network))")
@@ -326,8 +317,8 @@ function calcClusteringCoefficient(network::AbstractNetwork, idx_node::Integer)
 	# As in DOI: 10.1103/PhysRevE.76.026107
 	if isdirected(network)
 		nb = neighbors(network, idx_node; directed_behaviour=:any)
-		totalDegree = connectivity(network, idx_node, degree=:total)
-		biDegree = connectivity(network, idx_node, degree=:bi)
+		totalDegree = connectivity(network, idx_node, dir_behaviour=:total)
+		biDegree = connectivity(network, idx_node, dir_behaviour=:bi)
 		
 		numPossibleTriangles = totalDegree * (totalDegree - 1) - 2 * biDegree
 		numExistingTriangles = 0		

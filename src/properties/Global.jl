@@ -12,10 +12,10 @@ adjMat(network::GlobalNetwork; sparse::Bool=false) =
 
 
 #---------- Calculators ----------
-function calcConnectivity(network::GlobalNetwork, idx_node::Integer; degree::Symbol)
+function calcConnectivity(network::GlobalNetwork, idx_node::Integer; dir_behaviour::Symbol)
 	isdirected(network) || (return network.N - 1)
 	
-	(degree == :total) && (return 2 * (network.N - 1))
-	(degree == :both) && (return (network.N - 1, network.N - 1))
+	(dir_behaviour == :total) && (return 2 * (network.N - 1))
+	(dir_behaviour == :both) && (return (network.N - 1, network.N - 1))
 	return network.N - 1
 end

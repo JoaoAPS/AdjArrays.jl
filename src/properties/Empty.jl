@@ -13,5 +13,5 @@ end
 
 
 #---------- Calculators ----------
-calcConnectivity(network::EmptyNetwork, idx_node::Integer; degree::Symbol) =
-	degree == :both ? (0,0) : 0
+calcConnectivity(network::EmptyNetwork, idx_node::Integer; dir_behaviour::Symbol) =
+	dir_behaviour == :both ? (0,0) : 0

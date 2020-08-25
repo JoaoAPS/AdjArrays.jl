@@ -13,16 +13,79 @@ Also provides extra funcionalities.
 - Watts-Strogatz (small-world)
 
 #### Available functions
-- `numnodes(network)` : Return the number of nodes on the network
-- `numconnections(network)` : Return the number of connections on the network
-- `isdirected(network)` : Return wheter the network is directed or not
-- `meanconnectivity(network)` : Return the number of nodes on the network
-- `numshortcuts(network)` : (small-world networks only) Return the number of shortcuts added/rewired on the network
+- ##### adjMat(network)
+Return the adjacency matrix of the network
 
-- `adjMat(network)` : Return the adjacency matrix of the network
-- `adjVet(network)` : Return the adjacency vector of the network
-- `adjMatToVet(mat)` : Return the corresponding adjacency vector of the adjacency matrix passed
-- `adjVetToMat(vet, N)` : Return the corresponding adjacency matrix of the adjacency vector passed
+- ##### adjVet(network)
+Return the adjacency vector of the network
+
+- ##### numnodes(network)
+Return the number of nodes on the network
+
+- ##### numconnections(network)
+Return the number of connections on the network
+
+- ##### maxconnections(network)
+Return the maximum number of connections the network could possibly have
+
+- ##### isdirected(network)
+Return wheter the network is directed or not
+
+- ##### numshortcuts(network)
+(small-world networks only) Return the number of shortcuts added/rewired on the network
+
+- ##### connectivity(network, idx_node::Integer; dir_behaviour::Symbol=:total)
+Return the number of connections that the node of index `idx_node` gas.
+If the network is directed, the keywork argument `dir_behaviour` can be passed to specify the 
+type of connectivity desired. It can be :total, :in, :out, :mean, :both, or :bi.
+
+- ##### connectivity(network; dir_behaviour::Symbol=:total)
+Return the average connectivity of the network.
+
+- ##### connectivities(network; dir_behaviour::Symbol=:total)
+Return the connectivities of all nodes.
+
+- ##### clusteringcoefficient(network)
+Return the average clusteringcoefficient of the network.
+
+- ##### clusteringcoefficient(network, idx_node::Integer)
+Return the clustering coefficient of the specified node.
+
+- ##### clusteringcoefficients(network)
+Return the clustering coefficient of every node on the network.
+
+- ##### transitivity(network)
+Return the transitivity of the network.
+
+- ##### shortestpath(network, source::Integer,	target::Integer=nothing)
+Return the length of the shortest paths from the source node the every other node.
+If `target` is specified, only the path from the source to the target is returned.
+
+- ##### shortestpath(network)
+Return the average shortest path length of the network.
+
+- ##### averagepathlength(network)
+Return the average shortest path length of the network.
+
+- ##### sigma(network)
+Compare the network with an equivalent random network and return
+the small-world-ness measure ``σ = (C / C_ran) / (L / L_ran)``
+
+- ##### omega(network)
+Compare the network with an equivalent random and an equivalent lattice network
+and return the small-world-ness measure ``ω = (L_ran / L) - (C / C_reg)``
+
+- ##### smallworldness(network; verbose::Bool=true)
+Return the small-world-ness measures σ and ω.
+If `verbose` is true, also print an analysis.
+
+
+- ##### adjMatToVet(mat)
+Return the corresponding adjacency vector of the adjacency matrix passed.
+
+- ##### adjVetToMat(vet, N)
+Return the corresponding adjacency matrix of the adjacency vector passed.
+
 
 ## Use
 

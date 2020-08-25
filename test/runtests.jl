@@ -322,11 +322,11 @@ function tests()
 	    @test_throws ArgumentError connectivity(net, 11)
 	    
 	    net = RegularNetwork(10, 4, directed=true)
-	    @test connectivity(net, 1, degree=:in) == 4
-	    @test connectivity(net, 1, degree=:out) == 4
-	    @test connectivity(net, 1, degree=:total) == 2 * 4
-	    @test connectivity(net, 1, degree=:mean) == 4
-	    @test connectivity(net, 1, degree=:both) == (4, 4)
+	    @test connectivity(net, 1, dir_behaviour=:in) == 4
+	    @test connectivity(net, 1, dir_behaviour=:out) == 4
+	    @test connectivity(net, 1, dir_behaviour=:total) == 2 * 4
+	    @test connectivity(net, 1, dir_behaviour=:mean) == 4
+	    @test connectivity(net, 1, dir_behaviour=:both) == (4, 4)
 	    
 	    # Clustering Coefficient
 		net = GlobalNetwork(10)
@@ -339,7 +339,7 @@ function tests()
 	    @test clusteringcoefficient(net) == 0.5
 	    @test clusteringcoefficients(net) == repeat([0.5], 20)
 	    
-		net = ErdosRenyiNetwork(1000, 0.2, seed=1234)
+		net = ErdosRenyiNetwork(300, 0.2, seed=1234)
 	    @test clusteringcoefficient(net) ≈ 0.2 rtol=0.1
 	    
 	    net = GlobalNetwork(10, directed=true)
@@ -372,6 +372,14 @@ function tests()
 	    @test averagepathlength(net) == shortestpath(net)
 	    
 	    @test shortestpath(EmptyNetwork(10)) == 0
+	    
+	    # Small-world-ness
+	    net = WattsStrogatzNetwork(400, 4, 0.2; seed=1252, directed=true)
+	    equivRan = equivalentRandomNetwork(net)
+	    equivLat = equivalentLatticeNetwork(net)
+	    @test connectivity(net, dir_behaviour=:total) == connectivity(equivRan, dir_behaviour=:total)
+	    @test connectivity(net, dir_behaviour=:in) == connectivity(equivRan, dir_behaviour=:in)
+	    @test clusteringcoefficient(net) < clusteringcoefficient(equivLat)
 	end
 	
 	@testset "Operators" begin

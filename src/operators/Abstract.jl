@@ -289,3 +289,24 @@ function equivalentLatticeNetwork(
 	
 	return newnet
 end
+
+
+"""
+	saveAdjMat(network::AbstractNetwork, filepath::String)
+
+Write the adjacency matrix of a network to the specified files.
+
+See also: `saveAdjVet`
+"""
+saveAdjMat(network::AbstractNetwork, filepath::String) =
+	DelimitedFiles.writedlm(filepath, Int.(adjMat(network)))
+
+"""
+	saveAdjVet(network::AbstractNetwork, filepath::String)
+
+Write the adjacency vector of a network to the specified files.
+
+See also: `saveAdjMat`
+"""
+saveAdjVet(network::AbstractNetwork, filepath::String) =
+	DelimitedFiles.writedlm(filepath, adjVet(network))

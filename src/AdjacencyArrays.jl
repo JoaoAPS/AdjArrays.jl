@@ -1,6 +1,6 @@
 module AdjacencyArrays
 
-import SparseArrays, Random
+import SparseArrays, Random, DelimitedFiles
 import Base.show, Base.display
 
 export AbstractNetwork
@@ -18,7 +18,7 @@ export clusteringcoefficient, clusteringcoefficients, transitivity
 export shortestpath, averagepathlength
 export sigma, omega, smallworldness, equivalentRandomNetwork, equivalentLatticeNetwork
 export adjVet, adjMat
-export adjVetToMat, adjMatToVet
+export adjVetToMat, adjMatToVet, saveAdjMat, saveAdjVet
 export neighbors, allEdges
 
 include("architectures/AbstractNetwork.jl")

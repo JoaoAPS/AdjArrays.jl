@@ -82,7 +82,7 @@ Calculate the adjacency matrix based on the adjacency vector.
 See also: `adjMatToVet`
 """
 function adjVetToMat(vet::Vector{<:Integer}, N::Integer; sparse::Bool=false)
-	mat = sparse ? SparseArrays.spzeros(N, N) : BitArray(0 for i in 1:N, j in 1:N)
+	mat = sparse ? SparseArrays.spzeros(Int, N, N) : BitArray(0 for i in 1:N, j in 1:N)
 
 	let i = 0
 		for idx in vet

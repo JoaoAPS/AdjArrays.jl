@@ -306,7 +306,7 @@ function calcConnectivity(network::AbstractNetwork, idx_node::Integer; dir_behav
 	(dir_behaviour == :mean)  && (return (inDegree + outDegree) / 2)
 	(dir_behaviour == :both)  && (return (inDegree, outDegree))
 	(dir_behaviour == :bi)    &&
-		(return sum(BitArray(mat[idx_node, :] .& mat[:, idx_node])))
+		(return sum(BitArray(Bool.(mat[idx_node, :]) .& Bool.(mat[:, idx_node]))))
 end
 
 function calcAdjMat!(network::AbstractNetwork)

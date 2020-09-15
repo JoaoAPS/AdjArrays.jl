@@ -308,7 +308,7 @@ function calcConnectivity(network::AbstractNetwork, idx_node::Integer; dir_behav
 	if dir_behaviour == :bi
 		biConnecs = Bool.(mat[idx_node, :]) .& Bool.(mat[:, idx_node])
 		isempty(biConnecs.nzind) && (return 0)
-		return sum(BitArray(biConnecs))
+		return sum(biConnecs)
 	end
 end
 

@@ -305,8 +305,11 @@ function calcConnectivity(network::AbstractNetwork, idx_node::Integer; dir_behav
 	(dir_behaviour == :out)   && (return outDegree)
 	(dir_behaviour == :mean)  && (return (inDegree + outDegree) / 2)
 	(dir_behaviour == :both)  && (return (inDegree, outDegree))
-	(dir_behaviour == :bi)    &&
-		(return sum(BitArray(Bool.(mat[idx_node, :]) .& Bool.(mat[:, idx_node]))))
+	if dir_behaviour == :bi
+		biConnecs = Bool.(mat[idx_node, :]) .& Bool.(mat[:, idx_node])
+		isempty(biConnecs.nzind) && (return 0)
+		return sum(BitArray(biConnecs))
+	end
 end
 
 function calcAdjMat!(network::AbstractNetwork)

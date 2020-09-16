@@ -287,7 +287,7 @@ function equivalentLatticeNetwork(
 		end
 		
 		newnet = isa(mat, SparseArrays.AbstractSparseMatrix) ?
-			CustomNetwork(SparseArrays.dropzeros(mat), directed=true)
+			CustomNetwork(SparseArrays.dropzeros(mat), directed=true) :
 			CustomNetwork(mat, directed=true)
 	end
 	

@@ -326,7 +326,8 @@ function calcConnectivity(network::AbstractNetwork, idx_node::Integer; dir_behav
 	(dir_behaviour == :both)  && (return (inDegree, outDegree))
 	if dir_behaviour == :bi
 		biConnecs = Bool.(mat[idx_node, :]) .& Bool.(mat[:, idx_node])
-		isempty(biConnecs.nzind) && (return 0)
+		(isa(biConnecs, SparseArrays.AbstractSparseVector) && isempty(biConnecs.nzind)) &&
+			(return 0)
 		return sum(biConnecs)
 	end
 end

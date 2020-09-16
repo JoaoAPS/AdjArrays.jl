@@ -209,7 +209,9 @@ function equivalentRandomNetwork(
 		numRewires += 1
 	end
 	
-	return CustomNetwork(SparseArrays.dropzeros(mat), directed=true)
+	return isa(mat, SparseArrays.AbstractSparseMatrix) ?
+		CustomNetwork(SparseArrays.dropzeros(mat), directed=true) :
+		CustomNetwork(mat, directed=true) :
 end
 
 """

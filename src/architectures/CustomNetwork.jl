@@ -9,6 +9,7 @@ A custom network created from an adjacency matrix ou vector.
 struct CustomNetwork <: AbstractNetwork
 	N :: Integer
 	
+	seed :: Integer
 	_adjMat :: AbstractMatrix
 	_props :: NetworkProperties
 end
@@ -41,6 +42,7 @@ function CustomNetwork(mat::AbstractMatrix; directed::Union{Bool,Nothing}=nothin
 	
 	CustomNetwork(
 		size(mat, 1),
+		rand(1:99999999),
 		SparseArrays.issparse(mat) ? copy(mat) : BitArray(mat),
 		NetworkProperties(size(mat, 1), directed)
 	)

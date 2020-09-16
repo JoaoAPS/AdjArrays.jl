@@ -186,20 +186,39 @@ end
 	shortestpath(network::AbstractNetwork)
 
 Return the average shortest path length of the network.
+If the network is disconnected, return the average path length of
+the largest connected component.
 """
 function shortestpath(network::AbstractNetwork)
-	totalLength = 0
-	
+	# Ensures all shortest paths are calculated
 	for i in 1:network.N
-		pathLenghts = shortestpath(network, i)
-		for j in 1:network.N
-			((i == j) || isinf(pathLenghts[j])) && continue
-			totalLength += pathLenghts[j]
-		end
+		shortestpath(network, i)
 	end
 	
-	return totalLength / (network.N * (network.N - 1))
+	shortestPaths = @view network._props.shortestPaths[:]
+	totalLength = 0
+	
+	# If the network is disconnected, find the largest connected component
+	if any([any(isinf, sp_neuron_i) for sp_neuron_i in shortestPaths])
+		components = findComponents(shortestPaths)
+		largestComp = components[ findmax(length.(components))[2] ]
+		
+		(length(largestComp) == 1) && (return Inf)
+	else
+		# If the network is not disconnected, the largest component is the whole net
+		largestComp = 1:network.N
+	end
+	
+	for i in largestComp, j in largestComp
+		(i == j) && continue
+		totalLength += shortestPaths[i][j]
+	end
+
+	return totalLength / (length(largestComp) * (length(largestComp) - 1))
 end
+
+
+
 
 """
 	averagepathlength(network::AbstractNetwork)
@@ -415,4 +434,39 @@ function dijkstra(
 	end
 	
 	return distance
+end
+
+function findComponents(shortestPaths)
+	N = length(shortestPaths)
+	components = []
+	
+	while isempty(components) || sum(length.(components)) < N
+		component = Vector(1:N)
+		for found_comp in components
+			component = filter(x -> !(x in found_comp), component)
+		end
+		out = []
+		
+		for i in component
+			if isinf(shortestPaths[i][component[1]])
+				push!(out, i)
+			end
+		end
+		
+		component = filter(x -> !(x in out), component)
+		out = []
+		
+		for i in component
+			for j in component
+				if isinf(shortestPaths[i][j])
+					push!(out, j)
+				end
+			end
+		end
+		
+		component = filter(x -> !(x in out), component)
+		push!(components, component)
+	end
+	
+	return components
 end

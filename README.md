@@ -8,6 +8,7 @@ Also provides extra funcionalities.
 ## Instalation
 ```julia
 pkg> dev https://github.com/JoaoAPS/AdjacencyArrays.jl
+julia> using AdjacencyArrays
 ```
 
 #### Currently available architectures:

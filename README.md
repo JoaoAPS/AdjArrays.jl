@@ -5,6 +5,11 @@ Enables quick creation of adjacency matrices and vector of different
 network architectures.
 Also provides extra funcionalities.
 
+## Instalation
+```julia
+pkg> dev https://github.com/JoaoAPS/AdjacencyArrays.jl
+```
+
 #### Currently available architectures:
 - Empty
 - Global
